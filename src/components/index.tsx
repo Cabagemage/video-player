@@ -1,31 +1,38 @@
 import {useRef, useState} from "react";
-
+import ControlPanel from "./ControlPanel";
+import "./style.css"
 
 type VideoPlayerProps = {
     videoUrl: string;
     marks: Array<{
-        time: string;
+        time: number;
         label: string;
     }>
 }
-function VideoPlayer({videoUrl}: VideoPlayerProps) {
+function VideoPlayer({videoUrl, marks}: VideoPlayerProps) {
     const videoRef = useRef<HTMLVideoElement | null>(null);
     const progressBarRef = useRef(null);
-    const [time, setTime] = useState<null | string>(null);
+    const [playedTime, setPlayedTime] = useState<number>(0);
+    const [isPlaying, setIsPlaying] = useState(false);
     const [percent, setPercent] = useState(0);
+    const [uploadedProgress, setUploadedProgress] = useState(0)
+    const [uploadedProgressPosition, setUploadedProgressPosition] = useState(0);
+    const [duration, setDuration] = useState(0)
+    const [hoveredTime, setHoveredTime] = useState(0);
     const handleMouseMove = (event) => {
         const video = videoRef.current;
-        console.log(video?.duration)
         const progressBar = event.target;
         const { left, width } = progressBar.getBoundingClientRect();
         const mouseX = event.clientX - left;
         const progress = mouseX / width;
         const currentTime = progress * video?.duration;
-        const minutes = Math.floor(currentTime / 60);
-        const seconds = Math.floor(currentTime % 60);
-        const formattedTime = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-        setTime(formattedTime);
+        setHoveredTime(Math.round(currentTime));
     };
+
+    function handleLoadedMetadata(event) {
+        const video = event.target;
+        setDuration(video.duration);
+    }
 
     const handleProgressBarClick = (event) => {
         const video = videoRef.current;
@@ -36,30 +43,52 @@ function VideoPlayer({videoUrl}: VideoPlayerProps) {
         if(video){
             video.currentTime = progress * video.duration
         }
-
-
     };
 
     const handleTimeUpdate = () => {
-        const video = videoRef.current;
+        const video = videoRef?.current;
         const percent = (video?.currentTime / video?.duration) * 100;
+        setPlayedTime(video?.currentTime ?? 0)
         setPercent(percent);
     };
 
+    const playVideo = () => {
+        setIsPlaying(!isPlaying)
+
+        if(isPlaying){
+            videoRef.current?.pause()
+            return;
+        }
+        videoRef.current?.play()
+    }
+
+    const onListItemClick = (duration: number) => {
+        const video = videoRef.current;
+        if(video){
+            video.currentTime = duration
+        }
+
+
+    }
     return (
         <div>
-            <video ref={videoRef} src={videoUrl} onTimeUpdate={handleTimeUpdate} >
-                Sorry, your browser doesn't support embedded videos.
-            </video>
-            <div ref={progressBarRef} onClick={handleProgressBarClick}>
-                <div style={{ width: `${percent}%`, height: 50, backgroundColor: "#000" }} />
+            <div className={"videoPlayer"}>
+                <video  onLoadedMetadata={handleLoadedMetadata}  ref={videoRef} onTimeUpdate={handleTimeUpdate} >
+                    Sorry, your browser doesn't support embedded videos.
+                    <source src={"https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8"} type="application/x-mpegURL"/>
+                </video>
+                <ControlPanel hoveredTime={hoveredTime} marks={marks} videoDuration={duration} onVideoPlayClick={playVideo} isPlaying={isPlaying} uploadedProgressPosition={uploadedProgressPosition} uploadedProgress={uploadedProgress} onMouseMove={handleMouseMove} onProgressBarClick={handleProgressBarClick} widthOfVideoLength={percent} time={playedTime} ref={progressBarRef} />
             </div>
-            <div onMouseMove={handleMouseMove}>
-
-                    <span>{time}</span>
-
+            <div className={"list"}>
+                {marks.map((item,idx) => {
+                    const normalizedIndex = idx + 1;
+                    return (
+                        <button onClick={() => {onListItemClick(item.time)}} key={normalizedIndex} className={"button"}>{`${normalizedIndex}. ${item.label}`}</button>
+                    )
+                })}
             </div>
         </div>
+
 
     );
 }
