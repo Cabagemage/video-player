@@ -1,5 +1,9 @@
-
+.wrapper{
+    width: 1280px;
+    height: 640px;
+}
 .videoPlayer{
+    width: 100%;
     box-sizing: border-box;
     position: relative;
 }

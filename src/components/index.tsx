@@ -1,6 +1,7 @@
-import {useRef, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 import ControlPanel from "./ControlPanel";
 import "./style.css"
+import loadVideo from "../helpers/hls";
 
 type VideoPlayerProps = {
     videoUrl: string;
@@ -33,7 +34,11 @@ function VideoPlayer({videoUrl, marks}: VideoPlayerProps) {
         const video = event.target;
         setDuration(video.duration);
     }
-
+    useEffect(() => {
+        if (videoRef.current) {
+            loadVideo(videoUrl, videoRef.current);
+        }
+    }, [videoUrl]);
     const handleProgressBarClick = (event) => {
         const video = videoRef.current;
         const progressBar = progressBarRef.current;
@@ -71,11 +76,11 @@ function VideoPlayer({videoUrl, marks}: VideoPlayerProps) {
 
     }
     return (
-        <div>
+        <div className={"wrapper"}>
             <div className={"videoPlayer"}>
-                <video  onLoadedMetadata={handleLoadedMetadata}  ref={videoRef} onTimeUpdate={handleTimeUpdate} >
+                <video  style={{width: "100%", height: "100%"}} onLoadedMetadata={handleLoadedMetadata}  ref={videoRef} onTimeUpdate={handleTimeUpdate} >
                     Sorry, your browser doesn't support embedded videos.
-                    <source src={"https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8"} type="application/x-mpegURL"/>
+
                 </video>
                 <ControlPanel hoveredTime={hoveredTime} marks={marks} videoDuration={duration} onVideoPlayClick={playVideo} isPlaying={isPlaying} uploadedProgressPosition={uploadedProgressPosition} uploadedProgress={uploadedProgress} onMouseMove={handleMouseMove} onProgressBarClick={handleProgressBarClick} widthOfVideoLength={percent} time={playedTime} ref={progressBarRef} />
             </div>
