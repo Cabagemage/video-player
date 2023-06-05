@@ -5,9 +5,9 @@
  * @param  {Object} value An object that may or may not be `Promise`-like.
  */
 export function silencePromise(value) {
-    if (is.promise(value)) {
-        value.then(null, () => {});
-    }
+	if (is.promise(value)) {
+		value.then(null, () => {});
+	}
 }
 
 export default { silencePromise };

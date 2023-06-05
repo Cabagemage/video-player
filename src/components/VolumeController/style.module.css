@@ -1,57 +1,55 @@
-
-
 .volumeRange {
-    -webkit-appearance: none;
-    appearance: none;
-    background: transparent;
-    cursor: pointer;
-    width: 70px;
+	-webkit-appearance: none;
+	appearance: none;
+	background: transparent;
+	cursor: pointer;
+	width: 70px;
 }
 
 /***** Chrome, Safari, Opera, and Edge Chromium *****/
 .volumeRange::-webkit-slider-runnable-track {
-    background: #dee8ef;
-    height: 0.5rem;
-    border-radius: 20px;
+	background: #dee8ef;
+	height: 0.5rem;
+	border-radius: 20px;
 }
 
 /******** Firefox ********/
 .volumeRange::-moz-range-track {
-    background: #d7e0ea;
-    height: 0.5rem;
-    border-radius: 20px;
+	background: #d7e0ea;
+	height: 0.5rem;
+	border-radius: 20px;
 }
 
 .volumeRange::-webkit-slider-thumb {
-    -webkit-appearance: none; /* Override default look */
-    appearance: none;
-    margin-top: -4px;
-    margin-left: 0;/* Centers thumb on the track */
-    background-color: #676b6b;
-    height: 1rem;
-    width: 1rem;
-    border-radius: 50%;
+	-webkit-appearance: none; /* Override default look */
+	appearance: none;
+	margin-top: -4px;
+	margin-left: 0; /* Centers thumb on the track */
+	background-color: #676b6b;
+	height: 1rem;
+	width: 1rem;
+	border-radius: 50%;
 }
 
 .volumeRange::-moz-range-thumb {
-    border: none; /*Removes extra border that FF applies*/
-    border-radius: 0; /*Removes default border-radius that FF applies*/
-    background-color: #cdd6d9;
-    height: 2rem;
-    width: 1rem;
+	border: none; /*Removes extra border that FF applies*/
+	border-radius: 0; /*Removes default border-radius that FF applies*/
+	background-color: #cdd6d9;
+	height: 2rem;
+	width: 1rem;
 }
 
 /***** Focus Styles *****/
 /* Removes default focus */
 .volumeRange:focus {
-    outline: none;
+	outline: none;
 }
 
-.rangeWrapper{
-    display: flex;
-    position: absolute;
-    right: -9px;
-    top: -30px;
-    transform: rotate(-90deg);
-    flex-direction: column;
+.rangeWrapper {
+	display: flex;
+	position: absolute;
+	right: -9px;
+	top: -30px;
+	transform: rotate(-90deg);
+	flex-direction: column;
 }

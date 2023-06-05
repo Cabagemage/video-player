@@ -1,0 +1,8 @@
+node_modules
+.idea
+package-lock.json
+.next
+package.json
+tailwind.config.js
+postcss.config.js
+generated

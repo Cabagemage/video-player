@@ -1,108 +1,110 @@
-.audioPlayer{
-    max-width: 680px;
-    height: 50vh;
-    display: flex;
-    flex-direction: column;
-    background-color: #e37e7e;
-    position: relative;
-    overflow: hidden;
+.audioPlayer {
+	max-width: 680px;
+	height: 50vh;
+	display: flex;
+	flex-direction: column;
+	background-color: #e37e7e;
+	position: relative;
+	overflow: hidden;
 }
-.imageWrapper{
-    width: 100%;
-    height: 100%;
+.imageWrapper {
+	width: 100%;
+	height: 100%;
 }
-.image{
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+.image {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
 }
-.controls{
-    width: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    position: absolute;
-    bottom: 0;
-    height: 30px;
-    display: flex;
-    align-items: center;
-}
-
-.button{
-    background-color: transparent;
-}
-.play{
-    padding: 0
-}
-.time{
-    color: #ffffff;
-    margin-right: 15px;
+.controls {
+	width: 100%;
+	background-color: rgba(0, 0, 0, 0.5);
+	position: absolute;
+	bottom: 0;
+	height: 30px;
+	display: flex;
+	align-items: center;
 }
 
-.leftControls{
-    display: flex;
-
-    align-items: center;
-
+.button {
+	background-color: transparent;
 }
-.rightControls{
-    display: flex;
+.play {
+	padding: 0;
+}
+.time {
+	color: #ffffff;
+	margin-right: 15px;
+}
+
+.leftControls {
+	display: flex;
+
+	align-items: center;
+}
+.rightControls {
+	display: flex;
 }
 .progressBar {
-     width: 100%;
-    box-sizing: border-box;
-    position: relative;
-    height: 3px;
-    border-bottom: 3px solid rgba(243, 243, 243, 0.3);
-    cursor: pointer;
+	width: 100%;
+	box-sizing: border-box;
+	position: relative;
+	height: 3px;
+	border-bottom: 3px solid rgba(243, 243, 243, 0.3);
 }
-
+.progressBarWrapper {
+	width: 100%;
+	padding-top: 10px;
+	padding-bottom: 10px;
+	cursor: pointer;
+}
 .progressBarKnob {
-    position: absolute;
-    left: 0;
-    top: 0;
-    box-sizing: border-box;
-    height: 3px;
-    border-bottom: 3px solid #fff;
-    z-index: 1;
-    pointer-events: none;
+	position: absolute;
+	left: 0;
+	top: 0;
+	box-sizing: border-box;
+	height: 3px;
+	border-bottom: 3px solid #fff;
+	z-index: 1;
+	pointer-events: none;
 }
 
 .volumeContainer {
-    cursor: pointer;
-    position: relative;
-    z-index: 2;
+	cursor: pointer;
+	position: relative;
+	z-index: 2;
 }
 .volumeButton {
-    height: 26px;
-    display: flex;
-    align-items: center;
+	height: 26px;
+	display: flex;
+	align-items: center;
 }
 
-.soundControl{
-     position: relative;
-
- }
-
-.mark{
-    position: absolute;
-    background-color: #92b9a1;
-    width: 5px;
-    height: 3px;
-    opacity: 0.5;
-    z-index: 50;
-}
-.markHover{
-    padding: 0 20px 0 20px;
-    background-color: rgba(0, 0, 0, 0.5);
-    color: #ffffff;
-    position: absolute;
-    top: -30px;
-    left: 30%;
+.soundControl {
+	position: relative;
 }
 
-.list{
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    background-color: rgba(0, 0, 0, 0.5);
-    max-width: 680px
+.mark {
+	position: absolute;
+	background-color: #92b9a1;
+	width: 5px;
+	height: 3px;
+	opacity: 0.5;
+	z-index: 50;
+}
+.markHover {
+	padding: 0 20px 0 20px;
+	background-color: rgba(0, 0, 0, 0.5);
+	color: #ffffff;
+	position: absolute;
+	top: -30px;
+	left: 30%;
+}
+
+.list {
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-start;
+	background-color: rgba(0, 0, 0, 0.5);
+	max-width: 680px;
 }
