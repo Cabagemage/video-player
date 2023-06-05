@@ -1,10 +1,14 @@
 #root {
-  max-width: 1280px;
+  width: 100vw;
+  height: 100vh;
   margin: 0 auto;
-  padding: 2rem;
   text-align: center;
 }
-
+.flex{
+  display: flex;
+  flex-direction: column;
+  gap: 300px
+}
 .logo {
   height: 6em;
   padding: 1.5em;

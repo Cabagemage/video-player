@@ -1,5 +1,5 @@
 
-export const getVideoTime = (duration: number) => {
+export const getFormattedTime = (duration: number) => {
     const minutes = Math.floor(duration / 60);
     const seconds = Math.floor(duration % 60);
 

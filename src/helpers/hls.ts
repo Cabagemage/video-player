@@ -1,17 +1,22 @@
 import Hls from "hls.js";
+type LoadVideo = {
+    url: string;
+    videoElement: HTMLVideoElement | null;
+}
+function loadVideo({videoElement, url}:LoadVideo) {
+    if(videoElement !== null){
+        if (Hls.isSupported() && videoElement) {
+            const hls = new Hls();
+            hls.loadSource(url);
+            hls.attachMedia(videoElement);
 
-function loadVideo(url: string, videoElement: HTMLVideoElement) {
-    if (Hls.isSupported()) {
-        const hls = new Hls();
-        hls.loadSource(url);
-        hls.attachMedia(videoElement);
-        hls.on(Hls.Events.MANIFEST_PARSED, () => {
-            const player = new Plyr(videoElement);
-            player.play();
-        });
-    } else {
-        videoElement.src = url;
+            return hls
+        } else {
+            videoElement.src = url;
+            return null
+        }
     }
+
 }
 
 export default loadVideo
