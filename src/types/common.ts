@@ -9,6 +9,7 @@ export type AudioPlayerMark = {
     start: number;
     end: number;
     imageSrc: string;
+    label: string;
 }
 type QualitySettingsProps = {options: Array<Quality>, onQualityClick: (qualityId: number) => void, current?: string};
 
