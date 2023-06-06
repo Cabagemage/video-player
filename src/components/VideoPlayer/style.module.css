@@ -27,3 +27,22 @@
 	background-color: rgba(0, 0, 0, 0.5);
 	width: 300px;
 }
+
+.button {
+	background-color: transparent;
+}
+
+.volumeContainer {
+	cursor: pointer;
+	position: relative;
+	z-index: 26;
+}
+.volumeButton {
+	height: 26px;
+	display: flex;
+	align-items: center;
+}
+
+.soundControl {
+	position: relative;
+}

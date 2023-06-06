@@ -10,6 +10,9 @@ import { MEDIUM_QUALITY_IDX } from "../../helpers/constants";
 import browser from "../../helpers/browser";
 import clsx from "clsx";
 import throttle from "../../helpers/throttle";
+import icons from "../../assets/sprite.svg";
+import VolumeController from "../VolumeController";
+import useVolumeControl from "../../helpers/useVolumeControl";
 
 type VideoPlayerProps = {
 	videoUrl: string;
@@ -30,7 +33,8 @@ function VideoPlayer({ videoUrl, marks }: VideoPlayerProps) {
 	const [availableQualities, setAvailableQualities] = useState<Array<Quality>>([]);
 	const [currentQuality, setCurrentQuality] = useState(MEDIUM_QUALITY_IDX);
 	const [isControlPanelVisible, setIsControlPanelVisible] = useState(true);
-
+	const { isVolumeSliderVisible, volume, hideAudioSlider, showAudioSlider, onChangeSound, toggleSound } =
+		useVolumeControl(videoRef);
 	const handleMouseMove = (event) => {
 		const video = videoRef.current;
 		const progressBar = event.target;
@@ -63,15 +67,14 @@ function VideoPlayer({ videoUrl, marks }: VideoPlayerProps) {
 		setPercent(percent);
 	}, 1000);
 
-	const playVideo = () => {
+	const playVideo = async () => {
 		setIsPlaying(!isPlaying);
 		if (isPlaying) {
-			videoRef.current?.pause();
+			await videoRef.current?.pause();
 			return;
 		}
-		videoRef.current?.play();
+		await videoRef.current?.play();
 	};
-
 	const onListItemClick = (duration: number) => {
 		const video = videoRef.current;
 		if (video) {
@@ -156,6 +159,16 @@ function VideoPlayer({ videoUrl, marks }: VideoPlayerProps) {
 							current: availableQualities[currentQuality]?.quality,
 						},
 					}}
+					soundControl={
+						<div className={style.soundControl} onMouseLeave={hideAudioSlider}>
+							<button onMouseEnter={showAudioSlider} className={style.button} onClick={toggleSound}>
+								<svg width="20px" height="20px">
+									<use xlinkHref={`${icons}#sound`} />
+								</svg>
+							</button>
+							<VolumeController isVisible={isVolumeSliderVisible} onChange={onChangeSound} value={volume} />
+						</div>
+					}
 					onFullScreenEnter={toggleFullScreen}
 					hoveredTime={hoveredTime}
 					marks={marks}

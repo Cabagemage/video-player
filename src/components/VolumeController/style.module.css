@@ -52,4 +52,5 @@
 	top: -30px;
 	transform: rotate(-90deg);
 	flex-direction: column;
+	z-index: 26;
 }

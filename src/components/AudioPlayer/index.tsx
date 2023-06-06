@@ -7,6 +7,7 @@ import VolumeController from "../VolumeController";
 import clsx from "clsx";
 import { AudioPlayerMark } from "../../types/common";
 import browser from "../../helpers/browser";
+import useVolumeControl from "../../helpers/useVolumeControl";
 
 type AudioPlayerProps = {
 	currentAudioSrc: string | undefined;
@@ -15,13 +16,12 @@ type AudioPlayerProps = {
 
 const AudioPlayer = ({ currentAudioSrc, marks }: AudioPlayerProps) => {
 	const playerRef = useRef<HTMLMediaElement | null>(null);
-	const canvasRef = useRef<HTMLCanvasElement | null>(null);
 	const progressBarRef = useRef<HTMLDivElement | null>(null);
 	const [duration, setDuration] = useState(0);
 	const [currentTime, setCurrentTime] = useState(0);
 	const [isPlaying, setIsPlaying] = useState(false);
-	const [volume, setVolume] = useState(0.3);
-	const [isVolumeVisible, setIsVolumeVisible] = useState(false);
+	const { showAudioSlider, isVolumeSliderVisible, volume, hideAudioSlider, toggleSound, onChangeSound } =
+		useVolumeControl(playerRef);
 	const [currentMark, setCurrentMark] = useState<string | null>(marks[0].imageSrc);
 	const [isDragging, setIsDragging] = useState(false);
 	const findCurrentMark = (currentTime: number): undefined | AudioPlayerMark => {
@@ -47,27 +47,21 @@ const AudioPlayer = ({ currentAudioSrc, marks }: AudioPlayerProps) => {
 		const song = event.target;
 		setDuration(song.duration);
 	};
-	const onPlay = () => {
+	const onPlay = async () => {
 		const player = playerRef.current;
 		if (player !== null) {
-			player.play();
+			await player.play();
 			setIsPlaying(true);
 		}
 	};
-	const onStop = () => {
+	const onStop = async () => {
 		const player = playerRef.current;
 		if (player !== null) {
-			player.pause();
+			await player.pause();
 			setIsPlaying(false);
 		}
 	};
 
-	const showAudioSlider = () => {
-		setIsVolumeVisible(true);
-	};
-	const hideAudioSlider = () => {
-		setIsVolumeVisible(false);
-	};
 	const handleProgressBarClick = (event) => {
 		const player = playerRef.current;
 
@@ -88,39 +82,6 @@ const AudioPlayer = ({ currentAudioSrc, marks }: AudioPlayerProps) => {
 	};
 	const { minutes, seconds } = getFormattedTime(duration);
 	const { minutes: currentMinutes, seconds: currentSeconds } = getFormattedTime(currentTime);
-
-	const changeSound = (volume: string) => {
-		const player = playerRef.current;
-		const newVolume = Number(volume);
-		setVolume(newVolume);
-
-		if (player) {
-			player.volume = newVolume;
-		}
-	};
-
-	const disableSound = () => {
-		const player = playerRef.current;
-		if (player) {
-			player.volume = 0;
-			setVolume(0);
-		}
-	};
-	const enableSound = () => {
-		const player = playerRef.current;
-		if (player) {
-			player.volume = 1;
-			setVolume(1);
-		}
-	};
-	const toggleSound = () => {
-		if (volume >= 0) {
-			disableSound();
-		}
-		if (volume === 0) {
-			enableSound();
-		}
-	};
 
 	const onListItemClick = (duration: number) => {
 		const player = playerRef.current;
@@ -155,12 +116,9 @@ const AudioPlayer = ({ currentAudioSrc, marks }: AudioPlayerProps) => {
 
 	// Останавливает перемещение ползунка
 	function stopDragging(event) {
-		const player = playerRef.current;
 		setIsDragging(false);
-		if (player) {
-			player.currentTime = event.target.currentTime;
-		}
 	}
+
 	return (
 		<div>
 			<audio
@@ -173,7 +131,7 @@ const AudioPlayer = ({ currentAudioSrc, marks }: AudioPlayerProps) => {
 				Your browser does not support the <code>audio</code> element.
 			</audio>
 			<div className={style.audioPlayer}>
-				<div className={style.imageWrapper} onClick={togglePlay}>
+				<div className={style.imageWrapper} onMouseEnter={hideAudioSlider} onClick={togglePlay}>
 					<img
 						alt="Image"
 						className={style.image}
@@ -235,12 +193,7 @@ const AudioPlayer = ({ currentAudioSrc, marks }: AudioPlayerProps) => {
 									<use xlinkHref={`${icons}#sound`} />
 								</svg>
 							</button>
-							<VolumeController
-								onHide={hideAudioSlider}
-								isVisible={isVolumeVisible}
-								onChange={changeSound}
-								value={volume}
-							/>
+							<VolumeController isVisible={isVolumeSliderVisible} onChange={onChangeSound} value={volume} />
 						</div>
 					</div>
 				</div>

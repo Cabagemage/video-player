@@ -20,12 +20,13 @@ function App() {
 			start: 0,
 			end: 7,
 			imageSrc: "https://imgv3.fotor.com/images/blog-cover-image/part-blurry-image.jpg",
-			label: "Начало",
+			label: "Введение",
 		},
 		{
 			start: 20,
 			end: 40,
-			imageSrc: "https://johnstillk8.scusd.edu/sites/main/files/main-images/camera_lense_0.jpeg",
+			imageSrc:
+				"https://www.searchenginejournal.com/wp-content/uploads/2019/07/the-essential-guide-to-using-images-legally-online.png",
 			label: "Продолжение",
 		},
 		{

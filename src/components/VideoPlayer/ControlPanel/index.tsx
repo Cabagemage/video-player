@@ -22,6 +22,7 @@ type ControlPanelProps = {
 	hoveredTime: number;
 	settings: Settings;
 	isControlPanelVisible: boolean;
+	soundControl: JSX.Element;
 };
 
 const ControlPanel = forwardRef<HTMLDivElement, ControlPanelProps>(
@@ -41,6 +42,7 @@ const ControlPanel = forwardRef<HTMLDivElement, ControlPanelProps>(
 			widthOfVideoLength,
 			time,
 			onMouseMove,
+			soundControl,
 		},
 		ref
 	) => {
@@ -97,7 +99,7 @@ const ControlPanel = forwardRef<HTMLDivElement, ControlPanelProps>(
 				</div>
 
 				<div className={style.controls}>
-					<div>
+					<div className={style.left}>
 						<button className={style.button} onClick={onVideoPlayClick}>
 							{isPlaying ? (
 								<svg width="14px" height="14px">
@@ -109,6 +111,7 @@ const ControlPanel = forwardRef<HTMLDivElement, ControlPanelProps>(
 								</svg>
 							)}
 						</button>
+						{soundControl}
 						<time className={style.time}>
 							{`${currentMinutes}:${currentSeconds}`}/{`${minutes}:${seconds}`}
 						</time>

@@ -43,6 +43,7 @@
 	align-items: center;
 }
 .rightControls {
+	position: relative;
 	display: flex;
 }
 .progressBar {
