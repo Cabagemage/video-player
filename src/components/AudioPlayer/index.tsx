@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import {  useRef, useState } from "react";
 import throttle from "../../helpers/throttle";
 import icons from "../../assets/sprite.svg";
 import style from "./style.module.css";
@@ -6,7 +6,6 @@ import { getFormattedTime } from "../../helpers/getFormattedTime";
 import VolumeController from "../VolumeController";
 import clsx from "clsx";
 import { AudioPlayerMark } from "../../types/common";
-import browser from "../../helpers/browser";
 import useVolumeControl from "../../helpers/useVolumeControl";
 
 type AudioPlayerProps = {
@@ -94,7 +93,7 @@ const AudioPlayer = ({ currentAudioSrc, marks }: AudioPlayerProps) => {
 	const togglePlay = isPlaying ? onStop : onPlay;
 
 	// Обновляет позицию ползунка и время видео при перемещении ползунка
-	function updateProgressBar(event) {
+	const updateProgressBar = (event) => {
 		if (isDragging) {
 			const progressBarRect = progressBarRef.current?.getBoundingClientRect();
 			const progress = (event.clientX - progressBarRect.left) / progressBarRect.width;
