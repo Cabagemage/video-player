@@ -5,10 +5,9 @@ type VolumeControllerProps = {
 	value: number;
 	onChange: (value: string) => void;
 	isVisible: boolean;
-	onHide: () => void;
 };
 
-const VolumeController = ({ onChange, value = 0, isVisible, onHide }: VolumeControllerProps) => {
+const VolumeController = ({ onChange, value = 0, isVisible }: VolumeControllerProps) => {
 	const onVolumeChange = (e: ChangeEvent<HTMLInputElement>) => {
 		console.log(e.target.value);
 		onChange(e.target.value);
@@ -19,7 +18,7 @@ const VolumeController = ({ onChange, value = 0, isVisible, onHide }: VolumeCont
 	}
 
 	return (
-		<div className={style.rangeWrapper} onMouseLeave={onHide}>
+		<div className={style.rangeWrapper}>
 			<input
 				className={style.volumeRange}
 				type="range"

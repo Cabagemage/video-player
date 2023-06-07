@@ -1,4 +1,4 @@
-import {  useRef, useState } from "react";
+import { useRef, useState } from "react";
 import throttle from "../../helpers/throttle";
 import icons from "../../assets/sprite.svg";
 import style from "./style.module.css";
@@ -7,6 +7,8 @@ import VolumeController from "../VolumeController";
 import clsx from "clsx";
 import { AudioPlayerMark } from "../../types/common";
 import useVolumeControl from "../../helpers/useVolumeControl";
+import usePlay from "../../helpers/usePlay";
+import useProgressBar from "../../helpers/useProgressBar";
 
 type AudioPlayerProps = {
 	currentAudioSrc: string | undefined;
@@ -18,11 +20,13 @@ const AudioPlayer = ({ currentAudioSrc, marks }: AudioPlayerProps) => {
 	const progressBarRef = useRef<HTMLDivElement | null>(null);
 	const [duration, setDuration] = useState(0);
 	const [currentTime, setCurrentTime] = useState(0);
-	const [isPlaying, setIsPlaying] = useState(false);
+	const { onPlay, isPlaying, onStop, onTogglePlay } = usePlay(playerRef);
 	const { showAudioSlider, isVolumeSliderVisible, volume, hideAudioSlider, toggleSound, onChangeSound } =
 		useVolumeControl(playerRef);
 	const [currentMark, setCurrentMark] = useState<string | null>(marks[0].imageSrc);
-	const [isDragging, setIsDragging] = useState(false);
+	const { onDraggingProgressBar, isDragging, startDragging, stopDragging, onClickProgressBar } =
+		useProgressBar(progressBarRef, playerRef);
+
 	const findCurrentMark = (currentTime: number): undefined | AudioPlayerMark => {
 		const currentSecond = Math.floor(currentTime);
 		return marks.find((item) => {
@@ -33,6 +37,9 @@ const AudioPlayer = ({ currentAudioSrc, marks }: AudioPlayerProps) => {
 	};
 
 	const onTimeUpdate = throttle((e) => {
+		if (isDragging) {
+			return;
+		}
 		setCurrentTime(e.target.currentTime);
 		const mark = findCurrentMark(e.target.currentTime);
 		if (mark !== undefined) {
@@ -46,39 +53,16 @@ const AudioPlayer = ({ currentAudioSrc, marks }: AudioPlayerProps) => {
 		const song = event.target;
 		setDuration(song.duration);
 	};
-	const onPlay = async () => {
-		const player = playerRef.current;
-		if (player !== null) {
-			await player.play();
-			setIsPlaying(true);
-		}
-	};
-	const onStop = async () => {
-		const player = playerRef.current;
-		if (player !== null) {
-			await player.pause();
-			setIsPlaying(false);
-		}
-	};
 
-	const handleProgressBarClick = (event) => {
-		const player = playerRef.current;
-
-		if (player === null) {
-			return;
-		}
-
-		const progressBar = progressBarRef.current;
-		const { left, width } = progressBar?.getBoundingClientRect();
-		const mouseX = event.clientX - left;
-		const progress = mouseX / width;
-		player.currentTime = progress * player.duration;
-		const mark = findCurrentMark(player?.currentTime);
+	const onMarkReach = (currentTime: number) => {
+		const mark = findCurrentMark(currentTime);
 
 		if (mark !== undefined) {
 			setCurrentMark(mark.imageSrc);
 		}
+		setCurrentTime(currentTime);
 	};
+
 	const { minutes, seconds } = getFormattedTime(duration);
 	const { minutes: currentMinutes, seconds: currentSeconds } = getFormattedTime(currentTime);
 
@@ -89,34 +73,6 @@ const AudioPlayer = ({ currentAudioSrc, marks }: AudioPlayerProps) => {
 			onPlay();
 		}
 	};
-
-	const togglePlay = isPlaying ? onStop : onPlay;
-
-	// Обновляет позицию ползунка и время видео при перемещении ползунка
-	const updateProgressBar = (event) => {
-		if (isDragging) {
-			const progressBarRect = progressBarRef.current?.getBoundingClientRect();
-			const progress = (event.clientX - progressBarRect.left) / progressBarRect.width;
-			const duration = playerRef.current?.duration;
-			const currentTime = duration * progress;
-			const mark = findCurrentMark(currentTime);
-
-			if (mark !== undefined) {
-				setCurrentMark(mark.imageSrc);
-			}
-			setCurrentTime(currentTime);
-		}
-	}
-
-	// Начинает перемещение ползунка
-	function startDragging() {
-		setIsDragging(true);
-	}
-
-	// Останавливает перемещение ползунка
-	function stopDragging(event) {
-		setIsDragging(false);
-	}
 
 	return (
 		<div>
@@ -130,7 +86,7 @@ const AudioPlayer = ({ currentAudioSrc, marks }: AudioPlayerProps) => {
 				Your browser does not support the <code>audio</code> element.
 			</audio>
 			<div className={style.audioPlayer}>
-				<div className={style.imageWrapper} onMouseEnter={hideAudioSlider} onClick={togglePlay}>
+				<div className={style.imageWrapper} onMouseEnter={hideAudioSlider} onClick={onTogglePlay}>
 					<img
 						alt="Image"
 						className={style.image}
@@ -161,9 +117,13 @@ const AudioPlayer = ({ currentAudioSrc, marks }: AudioPlayerProps) => {
 						className={style.progressBarWrapper}
 						ref={progressBarRef}
 						onMouseDown={startDragging}
-						onMouseMove={updateProgressBar}
+						onMouseMove={(e) => {
+							return onDraggingProgressBar({ event: e, callback: onMarkReach });
+						}}
 						onMouseUp={stopDragging}
-						onClick={handleProgressBarClick}
+						onClick={(e) => {
+							return onClickProgressBar({ event: e, callback: onMarkReach });
+						}}
 					>
 						<div className={style.progressBar}>
 							{marks.map((mark) => {
