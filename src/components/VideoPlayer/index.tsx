@@ -1,5 +1,4 @@
-import { MouseEventHandler, useEffect, useRef, useState } from "react";
-import ControlPanel from "./ControlPanel";
+import { useEffect, useRef, useState } from "react";
 import style from "./style.module.css";
 import { Mark } from "../../types/common";
 import loadVideo from "../../helpers/hls";
@@ -7,12 +6,22 @@ import { useFullScreen } from "./useFullScreen.js";
 import Hls from "hls.js";
 import { Quality } from "../../types/videoPlayer";
 import { MEDIUM_QUALITY_IDX } from "../../helpers/constants";
-import browser from "../../helpers/browser";
 import clsx from "clsx";
 import throttle from "../../helpers/throttle";
 import icons from "../../assets/sprite.svg";
 import VolumeController from "../VolumeController";
 import useVolumeControl from "../../helpers/useVolumeControl";
+import ProgressBar from "./ProgressBar";
+import PlayButton from "./PlayButton";
+import SettingsMenu from "./Settings";
+import useIsVisible from "../../helpers/useIsVisible";
+import Loader from "../Loader";
+import useTime from "../../helpers/useTime";
+import usePlay from "../../helpers/usePlay";
+import SubtitlesButton from "./SubtitlesButton";
+import Time from "./Time";
+import useProgressBar from "../../helpers/useProgressBar";
+import browser from "../../helpers/browser";
 
 type VideoPlayerProps = {
 	videoUrl: string;
@@ -22,65 +31,47 @@ function VideoPlayer({ videoUrl, marks }: VideoPlayerProps) {
 	const videoRef = useRef<HTMLVideoElement | null>(null);
 	const hlsRef = useRef<Hls | null>(null);
 	const progressBarRef = useRef(null);
-	const [playedTime, setPlayedTime] = useState<number>(0);
-	const [isPlaying, setIsPlaying] = useState(false);
-	const [percent, setPercent] = useState(0);
-	const [uploadedProgress, setUploadedProgress] = useState(0);
-	const [uploadedProgressPosition, setUploadedProgressPosition] = useState(0);
-	const [duration, setDuration] = useState(0);
-	const [hoveredTime, setHoveredTime] = useState(0);
-	const { toggleFullScreen, isFullScreen } = useFullScreen();
 	const [availableQualities, setAvailableQualities] = useState<Array<Quality>>([]);
 	const [currentQuality, setCurrentQuality] = useState(MEDIUM_QUALITY_IDX);
-	const [isControlPanelVisible, setIsControlPanelVisible] = useState(true);
+	const { onTogglePlay, isPlaying, onPlay } = usePlay(videoRef);
+	const { changePlayedTime, formattedTime, getMediaDuration, playedTimePercent } = useTime();
+	const element = document.getElementById(browser.isIPhone ? "player" : "playerWrapper");
+	const { isFullScreen, toggleFullScreen } = useFullScreen(element);
+	const { onShow: onShowSettings, onHide: onHideSettings, isVisible: isSettingsVisible } = useIsVisible();
+	const { isVisible: isLoaderVisible, onShow: onShowLoader, onHide: onHideLoader } = useIsVisible();
+	const {
+		onShow: onShowControlPanel,
+		onHide: onHideControlPanel,
+		isVisible: isControlPanelVisible,
+	} = useIsVisible(true);
 	const { isVolumeSliderVisible, volume, hideAudioSlider, showAudioSlider, onChangeSound, toggleSound } =
 		useVolumeControl(videoRef);
-	const handleMouseMove = (event) => {
-		const video = videoRef.current;
-		const progressBar = event.target;
-		const { left, width } = progressBar.getBoundingClientRect();
-		const mouseX = event.clientX - left;
-		const progress = mouseX / width;
-		const currentTime = progress * video?.duration;
-		setHoveredTime(Math.round(currentTime));
-	};
+	const {
+		onDraggingProgressBar,
+		isDragging,
+		startDragging,
+		stopDragging,
+		onClickProgressBar,
+		onProgress,
+		uploadedMediaPercent,
+	} = useProgressBar(progressBarRef, videoRef);
 
 	function handleLoadedMetadata(event) {
 		const video = event.target;
-		setDuration(video.duration);
+		getMediaDuration(video.duration);
 	}
 
-	const handleProgressBarClick = (event) => {
-		const video = videoRef.current;
-		const progressBar = progressBarRef.current;
-		const { left, width } = progressBar.getBoundingClientRect();
-		const mouseX = event.clientX - left;
-		const progress = mouseX / width;
-		if (video) {
-			video.currentTime = progress * video.duration;
-		}
-	};
-
 	const handleTimeUpdate = throttle((e) => {
-		const percent = (e.target.currentTime / e.target.duration) * 100;
-		setPlayedTime(e.target.currentTime ?? 0);
-		setPercent(percent);
+		if (!isDragging) {
+			changePlayedTime(e.target.currentTime ?? 0);
+		}
 	}, 1000);
 
-	const playVideo = async () => {
-		setIsPlaying(!isPlaying);
-		if (isPlaying) {
-			await videoRef.current?.pause();
-			return;
-		}
-		await videoRef.current?.play();
-	};
-	const onListItemClick = (duration: number) => {
+	const onListItemClick = async (duration: number) => {
 		const video = videoRef.current;
 		if (video) {
 			video.currentTime = duration;
-			video.play();
-			setIsPlaying(true);
+			await onPlay();
 		}
 	};
 
@@ -115,74 +106,133 @@ function VideoPlayer({ videoUrl, marks }: VideoPlayerProps) {
 	};
 
 	const onDoubleClickHandler = () => {
-		if (browser.isIPhone) {
-			return;
-		}
 		toggleFullScreen();
 	};
 
-	const onVideoHover: MouseEventHandler<HTMLDivElement> = (e) => {
-		setIsControlPanelVisible(true);
-	};
-	const onVideoLeave = () => {
-		if (isPlaying) {
-			setIsControlPanelVisible(false);
+	const showSubtitles = () => {
+		const subtitles = videoRef.current.textTracks[0];
+		const currentMode = subtitles.mode;
+
+		if (currentMode === "disabled" || currentMode === "hidden") {
+			subtitles.mode = "showing";
+			return;
 		}
+		subtitles.mode = "hidden";
 	};
+
+	if (browser.isIPhone) {
+		return (
+			<video
+				id={"player"}
+				className={style.video}
+				controls
+				playsInline
+				onCanPlayThrough={onHideLoader}
+				onWaiting={onShowLoader}
+				preload={"auto"}
+				onProgress={onProgress}
+				onDoubleClick={onDoubleClickHandler}
+				onClick={onTogglePlay}
+				style={{ width: "100%", height: "100%" }}
+				onLoadedMetadata={handleLoadedMetadata}
+				ref={videoRef}
+				onTimeUpdate={handleTimeUpdate}
+			>
+				<track kind="subtitles" src="../../../public/subtitles-ru.vtt" srcLang="en" label="English" default />
+				Sorry, your browser doesn't support embedded videos.
+			</video>
+		);
+	}
 	return (
-		<div className={clsx(style.wrapper, { [style.videoPlayerFullScreen]: isFullScreen })}>
+		<div id="playerWrapper" className={clsx(style.wrapper, { [style.videoPlayerFullScreen]: isFullScreen })}>
 			<div
-				onMouseLeave={onVideoLeave}
-				onMouseEnter={onVideoHover}
+				onMouseLeave={isPlaying ? onHideControlPanel : undefined}
+				onMouseEnter={onShowControlPanel}
 				className={clsx(style.videoPlayer, { [style.videoPlayerFullScreen]: isFullScreen })}
 			>
+				{isLoaderVisible && <Loader />}
 				<video
+					id={"player"}
+					className={style.video}
 					controls={false}
 					playsInline
-					webkitplaysinline
+					onCanPlayThrough={onHideLoader}
+					onWaiting={onShowLoader}
 					preload={"auto"}
+					onProgress={onProgress}
 					onDoubleClick={onDoubleClickHandler}
-					onClick={playVideo}
+					onClick={onTogglePlay}
 					style={{ width: "100%", height: "100%" }}
 					onLoadedMetadata={handleLoadedMetadata}
 					ref={videoRef}
 					onTimeUpdate={handleTimeUpdate}
 				>
+					<track
+						kind="subtitles"
+						src="../../../public/subtitles-ru.vtt"
+						srcLang="en"
+						label="English"
+						default
+					/>
 					Sorry, your browser doesn't support embedded videos.
 				</video>
-				<ControlPanel
-					isControlPanelVisible={isControlPanelVisible}
-					settings={{
-						quality: {
-							onQualityClick: changeQuality,
-							options: availableQualities,
-							current: availableQualities[currentQuality]?.quality,
-						},
-					}}
-					soundControl={
-						<div className={style.soundControl} onMouseLeave={hideAudioSlider}>
-							<button onMouseEnter={showAudioSlider} className={style.button} onClick={toggleSound}>
-								<svg width="20px" height="20px">
-									<use xlinkHref={`${icons}#sound`} />
+				<div className={clsx(style.controlPanel, { [style.hiddenControlPanel]: !isControlPanelVisible })}>
+					<div
+						className={style.videoProgressBarWrapper}
+						ref={progressBarRef}
+						onMouseDown={startDragging}
+						onMouseMove={(e) => {
+							return onDraggingProgressBar({
+								event: e,
+								callback: (currentTime) => {
+									changePlayedTime(currentTime);
+								},
+							});
+						}}
+						onMouseUp={stopDragging}
+						onClick={(e) => {
+							onClickProgressBar({ event: e });
+						}}
+					>
+						<ProgressBar playedTimePercent={playedTimePercent} uploadedTimePercent={uploadedMediaPercent} />
+					</div>
+					<div className={style.controls}>
+						<div className={style.controlsButtons}>
+							<PlayButton isPlaying={isPlaying} onClick={onTogglePlay} />
+							<div className={style.soundControl} onMouseLeave={hideAudioSlider}>
+								<button onMouseEnter={showAudioSlider} className={style.button} onClick={toggleSound}>
+									<svg width="20px" height="20px">
+										<use xlinkHref={`${icons}#sound`} />
+									</svg>
+								</button>
+								<VolumeController isVisible={isVolumeSliderVisible} onChange={onChangeSound} value={volume} />
+								<Time time={formattedTime} />
+							</div>
+						</div>
+						<div className={style.controlsButtons}>
+							<SettingsMenu
+								quality={{
+									onQualityClick: changeQuality,
+									options: availableQualities,
+									current: availableQualities[currentQuality]?.quality,
+								}}
+								onCloseMenu={onHideSettings}
+								isShow={isSettingsVisible}
+							/>
+							<button className={style.button} onClick={onShowSettings}>
+								<svg width="15px" height="15px">
+									<use xlinkHref={`${icons}#settings`} />
 								</svg>
 							</button>
-							<VolumeController isVisible={isVolumeSliderVisible} onChange={onChangeSound} value={volume} />
+							<SubtitlesButton isSubtitlesVisible={true} onClick={showSubtitles} />
+							<button onClick={toggleFullScreen} className={style.button}>
+								<svg width="14px" height="14px">
+									<use xlinkHref={`${icons}#fullScreen`} />
+								</svg>
+							</button>
 						</div>
-					}
-					onFullScreenEnter={toggleFullScreen}
-					hoveredTime={hoveredTime}
-					marks={marks}
-					videoDuration={duration}
-					onVideoPlayClick={playVideo}
-					isPlaying={isPlaying}
-					uploadedProgressPosition={uploadedProgressPosition}
-					uploadedProgress={uploadedProgress}
-					onMouseMove={handleMouseMove}
-					onProgressBarClick={handleProgressBarClick}
-					widthOfVideoLength={percent}
-					time={playedTime}
-					ref={progressBarRef}
-				/>
+					</div>
+				</div>
 			</div>
 			<div className={"list"}>
 				{marks.map((item, idx) => {

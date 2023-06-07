@@ -1,6 +1,37 @@
+.video::cue {
+	color: white;
+	background-color: black;
+	font-size: 1.2em;
+	text-shadow: none;
+}
 .wrapper {
 	max-width: 1280px;
 	overflow: hidden;
+}
+
+.controls {
+	padding-left: 20px;
+	padding-right: 20px;
+	height: 26px;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.controlsButtons {
+	display: flex;
+	align-items: center;
+}
+
+.videoProgressBarWrapper {
+	margin-left: 20px;
+	margin-right: 20px;
+	border-radius: 8px;
+	overflow: hidden;
+	cursor: pointer;
+	box-sizing: border-box;
+	padding-top: 10px;
+	padding-bottom: 10px;
 }
 
 .videoPlayer {
@@ -15,9 +46,19 @@
 	max-width: 100%;
 	height: 100%;
 }
-
+.controlPanel {
+	position: absolute;
+	width: 100%;
+	background-color: rgba(0, 0, 0, 0.5);
+	bottom: 5px;
+	padding-bottom: 10px;
+}
 .videoPlayerFullScreen > .controlPanel {
 	bottom: 0;
+}
+
+.hiddenControlPanel {
+	display: none;
 }
 
 .list {
@@ -44,5 +85,7 @@
 }
 
 .soundControl {
+	display: flex;
+	align-items: center;
 	position: relative;
 }

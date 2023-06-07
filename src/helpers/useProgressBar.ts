@@ -1,4 +1,4 @@
-import { MouseEvent, MutableRefObject, useState } from "react";
+import { MouseEvent, MutableRefObject, SyntheticEvent, useState } from "react";
 
 type ProgressBarDragEvent = {
 	event: MouseEvent<HTMLDivElement>;
@@ -13,6 +13,7 @@ const useProgressBar = (
 	mediaRef: MutableRefObject<HTMLMediaElement | null>
 ) => {
 	const [isDragging, setIsDragging] = useState(false);
+	const [uploadedMediaPercent, setUploadedMediaPercent] = useState(0);
 
 	// Обновляет позицию ползунка и время медиа при перемещении ползунка
 	const onDraggingProgressBar = ({ event, callback }: ProgressBarDragEvent) => {
@@ -45,22 +46,32 @@ const useProgressBar = (
 			callback(currentTime);
 		}
 	};
-	// Начинает перемещение ползунка
+
 	const startDragging = () => {
 		setIsDragging(true);
 	};
 
-	// Останавливает перемещение ползунка
 	const stopDragging = () => {
 		setIsDragging(false);
 	};
 
+	const onProgress = (e: SyntheticEvent<HTMLMediaElement>) => {
+		const bufferedTimeRanges = e.currentTarget.buffered;
+		if (bufferedTimeRanges.length > 0) {
+			const bufferedTime = bufferedTimeRanges.end(bufferedTimeRanges.length - 1);
+			const duration = e.currentTarget.duration;
+			const uploadedVideoPercent = (bufferedTime / duration) * 100;
+			setUploadedMediaPercent(uploadedVideoPercent);
+		}
+	};
 	return {
 		isDragging,
 		startDragging,
 		stopDragging,
 		onDraggingProgressBar,
 		onClickProgressBar,
+		onProgress,
+		uploadedMediaPercent,
 	};
 };
 

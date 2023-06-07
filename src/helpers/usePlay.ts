@@ -2,6 +2,7 @@ import { MutableRefObject, useState } from "react";
 
 const usePlay = (media: MutableRefObject<HTMLMediaElement | null>) => {
 	const [isPlaying, setIsPlaying] = useState(false);
+
 	const onPlay = async () => {
 		const player = media.current;
 		if (player !== null) {
@@ -9,6 +10,7 @@ const usePlay = (media: MutableRefObject<HTMLMediaElement | null>) => {
 			setIsPlaying(true);
 		}
 	};
+
 	const onStop = async () => {
 		const player = media.current;
 		if (player !== null) {

@@ -23,8 +23,8 @@ export function isFullScreenElement(el) {
 	);
 }
 
-export const useFullScreen = (options = {}) => {
-	const fsEl = options && options.element;
+export const useFullScreen = (element) => {
+	const fsEl = element;
 
 	const initialState = window ? false : isFullScreenElement(fsEl);
 	const [isFullScreen, setFullScreen] = useState(initialState);
@@ -32,7 +32,11 @@ export const useFullScreen = (options = {}) => {
 	const openFullScreen = () => {
 		const el = fsEl || document.documentElement;
 		const requestFullscreen =
-			el.webkitRequestFullScreen || el.requestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
+			el.webkitRequestFullScreen ||
+			el.requestFullscreen ||
+			el.mozRequestFullScreen ||
+			el.msRequestFullscreen ||
+			el.webkitEnterFullscreen;
 
 		return requestFullscreen.call(el);
 	};
@@ -65,7 +69,7 @@ export const useFullScreen = (options = {}) => {
 			document.removeEventListener("MSFullscreenChange", handleChange);
 			document.removeEventListener("fullscreenchange", handleChange);
 		};
-	}, [options.element, handleChange]);
+	}, [element, handleChange]);
 
 	return {
 		isFullScreen,

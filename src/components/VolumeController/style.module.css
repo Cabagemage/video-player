@@ -48,7 +48,7 @@
 .rangeWrapper {
 	display: flex;
 	position: absolute;
-	right: -9px;
+	left: -5px;
 	top: -30px;
 	transform: rotate(-90deg);
 	flex-direction: column;

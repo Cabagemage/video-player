@@ -32,10 +32,6 @@
 .play {
 	padding: 0;
 }
-.time {
-	color: #ffffff;
-	margin-right: 15px;
-}
 
 .leftControls {
 	display: flex;

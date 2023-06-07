@@ -37,7 +37,7 @@ const SettingsMenu = ({ isShow, onCloseMenu, quality }: SettingsMenuProps) => {
 			role="menu"
 		>
 			{!isQualityIsShowing ? (
-				<button onClick={onQualityClick} className={"menuItem"}>
+				<button onClick={onQualityClick} className={style.menuItem}>
 					<span>Качество</span> &nbsp; <span>{quality?.current ?? "авто"}</span>
 				</button>
 			) : null}

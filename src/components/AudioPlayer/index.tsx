@@ -9,6 +9,11 @@ import { AudioPlayerMark } from "../../types/common";
 import useVolumeControl from "../../helpers/useVolumeControl";
 import usePlay from "../../helpers/usePlay";
 import useProgressBar from "../../helpers/useProgressBar";
+import useIsVisible from "../../helpers/useIsVisible";
+import Loader from "../Loader";
+import PlayButton from "../VideoPlayer/PlayButton";
+import useTime from "../../helpers/useTime";
+import Time from "../VideoPlayer/Time";
 
 type AudioPlayerProps = {
 	currentAudioSrc: string | undefined;
@@ -18,15 +23,16 @@ type AudioPlayerProps = {
 const AudioPlayer = ({ currentAudioSrc, marks }: AudioPlayerProps) => {
 	const playerRef = useRef<HTMLMediaElement | null>(null);
 	const progressBarRef = useRef<HTMLDivElement | null>(null);
-	const [duration, setDuration] = useState(0);
-	const [currentTime, setCurrentTime] = useState(0);
-	const { onPlay, isPlaying, onStop, onTogglePlay } = usePlay(playerRef);
+	const { duration, getMediaDuration, formattedTime, playedTime, changePlayedTime, playedTimePercent } =
+		useTime();
+
+	const { onPlay, isPlaying, onTogglePlay } = usePlay(playerRef);
 	const { showAudioSlider, isVolumeSliderVisible, volume, hideAudioSlider, toggleSound, onChangeSound } =
 		useVolumeControl(playerRef);
 	const [currentMark, setCurrentMark] = useState<string | null>(marks[0].imageSrc);
 	const { onDraggingProgressBar, isDragging, startDragging, stopDragging, onClickProgressBar } =
 		useProgressBar(progressBarRef, playerRef);
-
+	const { isVisible, onShow, onHide } = useIsVisible();
 	const findCurrentMark = (currentTime: number): undefined | AudioPlayerMark => {
 		const currentSecond = Math.floor(currentTime);
 		return marks.find((item) => {
@@ -40,7 +46,7 @@ const AudioPlayer = ({ currentAudioSrc, marks }: AudioPlayerProps) => {
 		if (isDragging) {
 			return;
 		}
-		setCurrentTime(e.target.currentTime);
+		changePlayedTime(e.target.currentTime);
 		const mark = findCurrentMark(e.target.currentTime);
 		if (mark !== undefined) {
 			setCurrentMark(mark.imageSrc);
@@ -51,7 +57,7 @@ const AudioPlayer = ({ currentAudioSrc, marks }: AudioPlayerProps) => {
 
 	const handleLoadedMetadata = (event) => {
 		const song = event.target;
-		setDuration(song.duration);
+		getMediaDuration(song.duration);
 	};
 
 	const onMarkReach = (currentTime: number) => {
@@ -60,11 +66,8 @@ const AudioPlayer = ({ currentAudioSrc, marks }: AudioPlayerProps) => {
 		if (mark !== undefined) {
 			setCurrentMark(mark.imageSrc);
 		}
-		setCurrentTime(currentTime);
+		changePlayedTime(currentTime);
 	};
-
-	const { minutes, seconds } = getFormattedTime(duration);
-	const { minutes: currentMinutes, seconds: currentSeconds } = getFormattedTime(currentTime);
 
 	const onListItemClick = (duration: number) => {
 		const player = playerRef.current;
@@ -78,6 +81,8 @@ const AudioPlayer = ({ currentAudioSrc, marks }: AudioPlayerProps) => {
 		<div>
 			<audio
 				ref={playerRef}
+				onCanPlayThrough={onHide}
+				onWaiting={onShow}
 				onLoadedMetadata={handleLoadedMetadata}
 				src={currentAudioSrc ? currentAudioSrc : undefined}
 				onPlay={onPlay}
@@ -87,6 +92,7 @@ const AudioPlayer = ({ currentAudioSrc, marks }: AudioPlayerProps) => {
 			</audio>
 			<div className={style.audioPlayer}>
 				<div className={style.imageWrapper} onMouseEnter={hideAudioSlider} onClick={onTogglePlay}>
+					{isVisible && <Loader />}
 					<img
 						alt="Image"
 						className={style.image}
@@ -98,20 +104,8 @@ const AudioPlayer = ({ currentAudioSrc, marks }: AudioPlayerProps) => {
 				</div>
 				<div className={style.controls}>
 					<div className={style.leftControls}>
-						<button className={clsx(style.button)} onClick={isPlaying ? onStop : onPlay}>
-							{isPlaying ? (
-								<svg width="14px" height="14px">
-									<use xlinkHref={`${icons}#stop`} />
-								</svg>
-							) : (
-								<svg width="14px" height="14px">
-									<use xlinkHref={`${icons}#play`} />
-								</svg>
-							)}
-						</button>
-						<time className={style.time}>
-							{`${currentMinutes}:${currentSeconds}`}/{`${minutes}:${seconds}`}
-						</time>
+						<PlayButton isPlaying={isPlaying} onClick={onTogglePlay} />
+						<Time time={formattedTime} />
 					</div>
 					<div
 						className={style.progressBarWrapper}
@@ -138,10 +132,7 @@ const AudioPlayer = ({ currentAudioSrc, marks }: AudioPlayerProps) => {
 									/>
 								);
 							})}
-							<div
-								className={style.progressBarKnob}
-								style={{ width: `${(currentTime / duration) * 100}%` }}
-							/>
+							<div className={style.progressBarKnob} style={{ width: `${playedTimePercent}%` }} />
 						</div>
 					</div>
 

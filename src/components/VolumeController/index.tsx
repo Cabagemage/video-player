@@ -9,7 +9,6 @@ type VolumeControllerProps = {
 
 const VolumeController = ({ onChange, value = 0, isVisible }: VolumeControllerProps) => {
 	const onVolumeChange = (e: ChangeEvent<HTMLInputElement>) => {
-		console.log(e.target.value);
 		onChange(e.target.value);
 	};
 
