@@ -1,4 +1,4 @@
-import { MouseEvent, MutableRefObject, SyntheticEvent, useState } from "react";
+import { MouseEvent, MutableRefObject, SyntheticEvent, useEffect, useState } from "react";
 
 type ProgressBarDragEvent = {
 	event: MouseEvent<HTMLDivElement>;
@@ -15,21 +15,6 @@ const useProgressBar = (
 	const [isDragging, setIsDragging] = useState(false);
 	const [uploadedMediaPercent, setUploadedMediaPercent] = useState(0);
 
-	// Обновляет позицию ползунка и время медиа при перемещении ползунка
-	const onDraggingProgressBar = ({ event, callback }: ProgressBarDragEvent) => {
-		if (isDragging) {
-			const progressBarRect = progressBarRef.current?.getBoundingClientRect();
-			const progress = (event.clientX - progressBarRect.left) / progressBarRect.width;
-			const duration = mediaRef.current?.duration;
-			if (progress >= 0) {
-				const currentTime = duration * progress;
-
-				if (callback) {
-					callback(currentTime);
-				}
-			}
-		}
-	};
 	const onClickProgressBar = ({ event, callback }: ProgressBarClickEvent) => {
 		const player = mediaRef.current;
 		if (player === null) {
@@ -47,6 +32,22 @@ const useProgressBar = (
 		}
 	};
 
+	// Обновляет позицию ползунка и время медиа при перемещении ползунка
+	const onDraggingProgressBar = ({ event, callback }: ProgressBarDragEvent) => {
+		if (isDragging) {
+			const progressBarRect = progressBarRef.current?.getBoundingClientRect();
+			const progress = (event.clientX - progressBarRect.left) / progressBarRect.width;
+			const duration = mediaRef.current?.duration;
+			if (progress >= 0) {
+				const currentTime = duration * progress;
+
+				if (callback) {
+					callback(currentTime);
+				}
+			}
+		}
+	};
+
 	const startDragging = () => {
 		setIsDragging(true);
 	};
@@ -55,6 +56,7 @@ const useProgressBar = (
 		setIsDragging(false);
 	};
 
+	// Отображение загрузки медиа
 	const onProgress = (e: SyntheticEvent<HTMLMediaElement>) => {
 		const bufferedTimeRanges = e.currentTarget.buffered;
 		if (bufferedTimeRanges.length > 0) {
@@ -64,6 +66,26 @@ const useProgressBar = (
 			setUploadedMediaPercent(uploadedVideoPercent);
 		}
 	};
+
+	useEffect(() => {
+		const handleKeyDown = (event) => {
+			switch (event.code) {
+				case "ArrowLeft": {
+					return (mediaRef.current.currentTime -= 5);
+				}
+				case "ArrowRight": {
+					return (mediaRef.current.currentTime += 5);
+				}
+			}
+		};
+
+		document.addEventListener("keydown", handleKeyDown);
+
+		return () => {
+			document.removeEventListener("keydown", handleKeyDown);
+		};
+	}, []);
+
 	return {
 		isDragging,
 		startDragging,

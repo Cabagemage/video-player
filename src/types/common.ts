@@ -16,7 +16,11 @@ type QualitySettingsProps = {
 	onQualityClick: (qualityId: number) => void;
 	current?: string;
 };
-
+type Speed = {
+	current?: number;
+	onOptionClick: (speedRate: number) => void;
+};
 export type Settings = {
 	quality: QualitySettingsProps;
+	speed: Speed;
 };

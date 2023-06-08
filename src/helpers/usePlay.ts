@@ -1,4 +1,4 @@
-import { MutableRefObject, useState } from "react";
+import { MutableRefObject, useEffect, useState } from "react";
 
 const usePlay = (media: MutableRefObject<HTMLMediaElement | null>) => {
 	const [isPlaying, setIsPlaying] = useState(false);
@@ -18,8 +18,21 @@ const usePlay = (media: MutableRefObject<HTMLMediaElement | null>) => {
 			setIsPlaying(false);
 		}
 	};
-
 	const onTogglePlay = isPlaying ? onStop : onPlay;
+
+	useEffect(() => {
+		const handleKeyDown = async (event) => {
+			if (event.code === "Space") {
+				await onTogglePlay();
+			}
+		};
+
+		document.addEventListener("keydown", handleKeyDown);
+
+		return () => {
+			document.removeEventListener("keydown", handleKeyDown);
+		};
+	}, [isPlaying]);
 
 	return {
 		isPlaying,

@@ -28,6 +28,7 @@ const useVolumeControl = (mediaRef: MutableRefObject<HTMLMediaElement | null>) =
 			setVolume(0);
 		}
 	};
+
 	const onEnableSound = () => {
 		const player = mediaRef.current;
 		if (player) {
@@ -35,6 +36,7 @@ const useVolumeControl = (mediaRef: MutableRefObject<HTMLMediaElement | null>) =
 			setVolume(1);
 		}
 	};
+
 	const toggleSound = () => {
 		if (volume >= 0) {
 			onDisableSound();

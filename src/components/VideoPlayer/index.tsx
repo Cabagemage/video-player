@@ -22,6 +22,10 @@ import SubtitlesButton from "./SubtitlesButton";
 import Time from "./Time";
 import useProgressBar from "../../helpers/useProgressBar";
 import browser from "../../helpers/browser";
+import useControlPanel from "../../helpers/useControlPanel";
+import useMediaPlaybackRate from "../../helpers/useMediaPlaybackRate";
+import TimeMarks from "./TimeMarks";
+import useMark from "../../helpers/useMark";
 
 type VideoPlayerProps = {
 	videoUrl: string;
@@ -34,18 +38,17 @@ function VideoPlayer({ videoUrl, marks }: VideoPlayerProps) {
 	const [availableQualities, setAvailableQualities] = useState<Array<Quality>>([]);
 	const [currentQuality, setCurrentQuality] = useState(MEDIUM_QUALITY_IDX);
 	const { onTogglePlay, isPlaying, onPlay } = usePlay(videoRef);
-	const { changePlayedTime, formattedTime, getMediaDuration, playedTimePercent } = useTime();
+	const { changePlayedTime, formattedTime, getMediaDuration, playedTime, playedTimePercent } = useTime();
 	const element = document.getElementById(browser.isIPhone ? "player" : "playerWrapper");
 	const { isFullScreen, toggleFullScreen } = useFullScreen(element);
 	const { onShow: onShowSettings, onHide: onHideSettings, isVisible: isSettingsVisible } = useIsVisible();
 	const { isVisible: isLoaderVisible, onShow: onShowLoader, onHide: onHideLoader } = useIsVisible();
-	const {
-		onShow: onShowControlPanel,
-		onHide: onHideControlPanel,
-		isVisible: isControlPanelVisible,
-	} = useIsVisible(true);
+	const { onShowControlPanel, onHideControlPanel, isControlPanelVisible, handleMouseMove } =
+		useControlPanel();
 	const { isVolumeSliderVisible, volume, hideAudioSlider, showAudioSlider, onChangeSound, toggleSound } =
 		useVolumeControl(videoRef);
+	const [speedRate, changeSpeedRate] = useMediaPlaybackRate(videoRef);
+	const { changeCurrentMark, mark } = useMark<Mark>(videoRef, marks);
 	const {
 		onDraggingProgressBar,
 		isDragging,
@@ -65,12 +68,15 @@ function VideoPlayer({ videoUrl, marks }: VideoPlayerProps) {
 		if (!isDragging) {
 			changePlayedTime(e.target.currentTime ?? 0);
 		}
+		changeCurrentMark(e.target.currentTime ?? 0);
 	}, 1000);
 
-	const onListItemClick = async (duration: number) => {
+	const onMarkClick = async (mark: Mark) => {
 		const video = videoRef.current;
 		if (video) {
-			video.currentTime = duration;
+			video.currentTime = mark.start;
+			changeCurrentMark(mark.start);
+			changePlayedTime(mark.start);
 			await onPlay();
 		}
 	};
@@ -148,6 +154,7 @@ function VideoPlayer({ videoUrl, marks }: VideoPlayerProps) {
 			<div
 				onMouseLeave={isPlaying ? onHideControlPanel : undefined}
 				onMouseEnter={onShowControlPanel}
+				onMouseMove={handleMouseMove}
 				className={clsx(style.videoPlayer, { [style.videoPlayerFullScreen]: isFullScreen })}
 			>
 				{isLoaderVisible && <Loader />}
@@ -199,15 +206,21 @@ function VideoPlayer({ videoUrl, marks }: VideoPlayerProps) {
 					<div className={style.controls}>
 						<div className={style.controlsButtons}>
 							<PlayButton isPlaying={isPlaying} onClick={onTogglePlay} />
-							<div className={style.soundControl} onMouseLeave={hideAudioSlider}>
-								<button onMouseEnter={showAudioSlider} className={style.button} onClick={toggleSound}>
-									<svg width="20px" height="20px">
-										<use xlinkHref={`${icons}#sound`} />
-									</svg>
-								</button>
-								<VolumeController isVisible={isVolumeSliderVisible} onChange={onChangeSound} value={volume} />
-								<Time time={formattedTime} />
-							</div>
+							{!browser.isIos && (
+								<div className={style.soundControl} onMouseLeave={hideAudioSlider}>
+									<button onMouseEnter={showAudioSlider} className={style.button} onClick={toggleSound}>
+										<svg width="20px" height="20px">
+											<use xlinkHref={`${icons}#sound`} />
+										</svg>
+									</button>
+									<VolumeController
+										isVisible={isVolumeSliderVisible}
+										onChange={onChangeSound}
+										value={volume}
+									/>
+									<Time time={formattedTime} />
+								</div>
+							)}
 						</div>
 						<div className={style.controlsButtons}>
 							<SettingsMenu
@@ -217,6 +230,7 @@ function VideoPlayer({ videoUrl, marks }: VideoPlayerProps) {
 									current: availableQualities[currentQuality]?.quality,
 								}}
 								onCloseMenu={onHideSettings}
+								speed={{ onOptionClick: changeSpeedRate, current: speedRate }}
 								isShow={isSettingsVisible}
 							/>
 							<button className={style.button} onClick={onShowSettings}>
@@ -234,20 +248,21 @@ function VideoPlayer({ videoUrl, marks }: VideoPlayerProps) {
 					</div>
 				</div>
 			</div>
-			<div className={"list"}>
-				{marks.map((item, idx) => {
-					const normalizedIndex = idx + 1;
-					return (
-						<button
-							onClick={() => {
-								onListItemClick(item.start);
-							}}
-							key={normalizedIndex}
-							className={"button"}
-						>{`${normalizedIndex}. ${item.text}`}</button>
-					);
-				})}
-			</div>
+			<TimeMarks onMarkClick={onMarkClick} marks={marks} currentPlayerTime={playedTime} currentMark={mark} />
+			{/*<div className={"list"}>*/}
+			{/*	{marks.map((item, idx) => {*/}
+			{/*		const normalizedIndex = idx + 1;*/}
+			{/*		return (*/}
+			{/*			<button*/}
+			{/*				onClick={() => {*/}
+			{/*					onListItemClick(item.start);*/}
+			{/*				}}*/}
+			{/*				key={normalizedIndex}*/}
+			{/*				className={"button"}*/}
+			{/*			>{`${normalizedIndex}. ${item.text}`}</button>*/}
+			{/*		);*/}
+			{/*	})}*/}
+			{/*</div>*/}
 		</div>
 	);
 }

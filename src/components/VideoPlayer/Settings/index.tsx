@@ -8,14 +8,20 @@ type SettingsMenuProps = {
 	isShow: boolean;
 	onCloseMenu: () => void;
 	quality: Settings["quality"];
+	speed: Settings["speed"];
 };
 
-const SettingsMenu = ({ isShow, onCloseMenu, quality }: SettingsMenuProps) => {
+const speedRates = [0.5, 0.75, 1, 1.5, 2];
+
+const SettingsMenu = ({ isShow, onCloseMenu, quality, speed }: SettingsMenuProps) => {
 	const menuRef = useRef<HTMLDivElement | null>(null);
 
 	const [isQualityIsShowing, setIsQualityIsShowing] = useState(false);
-	useOnClickOutside(menuRef, (e) => {
+	const [isSpeedControlShowing, setIsSpeedControlShowing] = useState(false);
+
+	useOnClickOutside(menuRef, () => {
 		setIsQualityIsShowing(false);
+		setIsSpeedControlShowing(false);
 		onCloseMenu();
 	});
 
@@ -30,16 +36,33 @@ const SettingsMenu = ({ isShow, onCloseMenu, quality }: SettingsMenuProps) => {
 		quality.onQualityClick(qualityIdx);
 		setIsQualityIsShowing(false);
 	};
+	const onSpeedOptionClick = (speedOption: number) => {
+		speed.onOptionClick(speedOption);
+		setIsSpeedControlShowing(true);
+		onCloseMenu();
+	};
+	const onSpeedRateSettingsClick = () => {
+		setIsSpeedControlShowing(true);
+	};
+	const closeSpeedRateMenu = () => {
+		setIsSpeedControlShowing(false);
+	};
+	const isSubMenuShowing = isQualityIsShowing || isSpeedControlShowing;
 	return (
 		<div
 			ref={menuRef}
 			className={clsx(style.settings, { [style.settingsShow]: isShow, [style.settingsHidden]: !isShow })}
 			role="menu"
 		>
-			{!isQualityIsShowing ? (
-				<button onClick={onQualityClick} className={style.menuItem}>
-					<span>Качество</span> &nbsp; <span>{quality?.current ?? "авто"}</span>
-				</button>
+			{!isSubMenuShowing ? (
+				<div>
+					<button onClick={onQualityClick} className={style.menuItem}>
+						<span>Качество</span> &nbsp; <span>{quality?.current ?? "авто"}</span>
+					</button>
+					<button onClick={onSpeedRateSettingsClick} className={style.menuItem}>
+						<span>Скорость</span> &nbsp; <span>{speed.current}x</span>
+					</button>
+				</div>
 			) : null}
 			{isQualityIsShowing ? (
 				<div
@@ -63,6 +86,28 @@ const SettingsMenu = ({ isShow, onCloseMenu, quality }: SettingsMenuProps) => {
 					})}
 				</div>
 			) : null}
+			{isSpeedControlShowing && (
+				<div
+					className={clsx(style.settings, { [style.submenuShow]: isShow, [style.submenuHidden]: !isShow })}
+					role="menu"
+				>
+					<button className={style.menuItem} onClick={closeSpeedRateMenu}>
+						Вернуться
+					</button>
+					{speedRates.map((option) => {
+						return (
+							<button
+								className={style.menuItem}
+								onClick={() => {
+									return onSpeedOptionClick(option);
+								}}
+							>
+								{option}x
+							</button>
+						);
+					})}
+				</div>
+			)}
 		</div>
 	);
 };

@@ -12,6 +12,7 @@ type Mark = {
 function App() {
 	const marks: Mark[] = [
 		{ start: 0, end: 7, text: "Введение" },
+		{ start: 8, end: 19, text: "Второй текст" },
 		{ start: 20, end: 40, text: "Демонстрация работы камеры" },
 		{ end: 250, start: 150, text: "О функции GetComponent" },
 	];

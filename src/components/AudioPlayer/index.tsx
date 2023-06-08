@@ -14,6 +14,7 @@ import Loader from "../Loader";
 import PlayButton from "../VideoPlayer/PlayButton";
 import useTime from "../../helpers/useTime";
 import Time from "../VideoPlayer/Time";
+import useMark from "../../helpers/useMark";
 
 type AudioPlayerProps = {
 	currentAudioSrc: string | undefined;
@@ -29,30 +30,18 @@ const AudioPlayer = ({ currentAudioSrc, marks }: AudioPlayerProps) => {
 	const { onPlay, isPlaying, onTogglePlay } = usePlay(playerRef);
 	const { showAudioSlider, isVolumeSliderVisible, volume, hideAudioSlider, toggleSound, onChangeSound } =
 		useVolumeControl(playerRef);
-	const [currentMark, setCurrentMark] = useState<string | null>(marks[0].imageSrc);
+
 	const { onDraggingProgressBar, isDragging, startDragging, stopDragging, onClickProgressBar } =
 		useProgressBar(progressBarRef, playerRef);
 	const { isVisible, onShow, onHide } = useIsVisible();
-	const findCurrentMark = (currentTime: number): undefined | AudioPlayerMark => {
-		const currentSecond = Math.floor(currentTime);
-		return marks.find((item) => {
-			if (currentSecond >= item.start && currentSecond <= item.end) {
-				return item;
-			}
-		});
-	};
+	const { changeCurrentMark, mark } = useMark<AudioPlayerMark>(playerRef, marks);
 
 	const onTimeUpdate = throttle((e) => {
 		if (isDragging) {
 			return;
 		}
 		changePlayedTime(e.target.currentTime);
-		const mark = findCurrentMark(e.target.currentTime);
-		if (mark !== undefined) {
-			setCurrentMark(mark.imageSrc);
-			return;
-		}
-		setCurrentMark(null);
+		changeCurrentMark(e.target.currentTime);
 	}, 1000);
 
 	const handleLoadedMetadata = (event) => {
@@ -61,11 +50,7 @@ const AudioPlayer = ({ currentAudioSrc, marks }: AudioPlayerProps) => {
 	};
 
 	const onMarkReach = (currentTime: number) => {
-		const mark = findCurrentMark(currentTime);
-
-		if (mark !== undefined) {
-			setCurrentMark(mark.imageSrc);
-		}
+		changeCurrentMark(currentTime);
 		changePlayedTime(currentTime);
 	};
 
@@ -97,7 +82,7 @@ const AudioPlayer = ({ currentAudioSrc, marks }: AudioPlayerProps) => {
 						alt="Image"
 						className={style.image}
 						src={
-							currentMark ??
+							mark?.imageSrc ??
 							"https://cdn.wallpaperhub.app/cloudcache/b/d/7/6/4/b/bd764bb25d49a05105060185774ba14cd2c846f7.jpg"
 						}
 					/>
