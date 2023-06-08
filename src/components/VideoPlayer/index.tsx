@@ -24,7 +24,7 @@ import useProgressBar from "../../helpers/useProgressBar";
 import browser from "../../helpers/browser";
 import useControlPanel from "../../helpers/useControlPanel";
 import useMediaPlaybackRate from "../../helpers/useMediaPlaybackRate";
-import TimeMarks from "./TimeMarks";
+import TimeMarks from "../TimeMarks";
 import useMark from "../../helpers/useMark";
 
 type VideoPlayerProps = {
@@ -248,21 +248,12 @@ function VideoPlayer({ videoUrl, marks }: VideoPlayerProps) {
 					</div>
 				</div>
 			</div>
-			<TimeMarks onMarkClick={onMarkClick} marks={marks} currentPlayerTime={playedTime} currentMark={mark} />
-			{/*<div className={"list"}>*/}
-			{/*	{marks.map((item, idx) => {*/}
-			{/*		const normalizedIndex = idx + 1;*/}
-			{/*		return (*/}
-			{/*			<button*/}
-			{/*				onClick={() => {*/}
-			{/*					onListItemClick(item.start);*/}
-			{/*				}}*/}
-			{/*				key={normalizedIndex}*/}
-			{/*				className={"button"}*/}
-			{/*			>{`${normalizedIndex}. ${item.text}`}</button>*/}
-			{/*		);*/}
-			{/*	})}*/}
-			{/*</div>*/}
+			<TimeMarks<Mark>
+				onMarkClick={onMarkClick}
+				marks={marks}
+				currentPlayerTime={playedTime}
+				currentMark={mark}
+			/>
 		</div>
 	);
 }

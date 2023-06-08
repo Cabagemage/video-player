@@ -1,17 +1,21 @@
-import { Mark } from "../../../types/common";
+import { Mark } from "../../types/common";
 import style from "./style.module.css";
-import { getFormattedTime } from "../../../helpers/getFormattedTime";
+import { getFormattedTime } from "../../helpers/getFormattedTime";
 import clsx from "clsx";
 
-type TimeMarksProps = {
-	marks: Array<Mark>;
+type BaseTimeMark = {
+	text: string;
+	start: number;
+	end: number;
+};
+type TimeMarksProps<T extends BaseTimeMark> = {
+	marks: Array<T>;
 	currentPlayerTime: number;
-	mediaDuration: number;
-	currentMark: Mark;
+	currentMark: T;
 	onMarkClick: (currentMark: Mark) => void;
 };
 
-const TimeMarks = ({ marks, currentMark, currentPlayerTime, onMarkClick }: TimeMarksProps) => {
+const TimeMarks = <T,>({ marks, currentMark, currentPlayerTime, onMarkClick }: TimeMarksProps<T>) => {
 	return (
 		<div className={style.marks}>
 			{marks.map((item) => {
@@ -20,7 +24,6 @@ const TimeMarks = ({ marks, currentMark, currentPlayerTime, onMarkClick }: TimeM
 				const markerWidth = 194;
 				const isActive = currentMark?.start === item.start;
 				const progress = (currentPlayerTime - item.start) / markerDuration;
-				console.log(markerDuration, progress);
 				return (
 					<button
 						className={style.markWrapper}

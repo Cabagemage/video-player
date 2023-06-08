@@ -5,7 +5,7 @@ import style from "./style.module.css";
 import { getFormattedTime } from "../../helpers/getFormattedTime";
 import VolumeController from "../VolumeController";
 import clsx from "clsx";
-import { AudioPlayerMark } from "../../types/common";
+import { AudioPlayerMark, Mark } from "../../types/common";
 import useVolumeControl from "../../helpers/useVolumeControl";
 import usePlay from "../../helpers/usePlay";
 import useProgressBar from "../../helpers/useProgressBar";
@@ -15,6 +15,7 @@ import PlayButton from "../VideoPlayer/PlayButton";
 import useTime from "../../helpers/useTime";
 import Time from "../VideoPlayer/Time";
 import useMark from "../../helpers/useMark";
+import TimeMarks from "../TimeMarks";
 
 type AudioPlayerProps = {
 	currentAudioSrc: string | undefined;
@@ -54,14 +55,15 @@ const AudioPlayer = ({ currentAudioSrc, marks }: AudioPlayerProps) => {
 		changePlayedTime(currentTime);
 	};
 
-	const onListItemClick = (duration: number) => {
-		const player = playerRef.current;
-		if (player) {
-			player.currentTime = duration;
-			onPlay();
+	const onMarkClick = async (mark: Mark) => {
+		const video = playerRef.current;
+		if (video) {
+			video.currentTime = mark.start;
+			changeCurrentMark(mark.start);
+			changePlayedTime(mark.start);
+			await onPlay();
 		}
 	};
-
 	return (
 		<div>
 			<audio
@@ -128,25 +130,16 @@ const AudioPlayer = ({ currentAudioSrc, marks }: AudioPlayerProps) => {
 									<use xlinkHref={`${icons}#sound`} />
 								</svg>
 							</button>
-							<VolumeController isVisible={isVolumeSliderVisible} onChange={onChangeSound} value={volume} />
 						</div>
 					</div>
 				</div>
 			</div>
-			<div className={style.list}>
-				{marks.map((item) => {
-					return (
-						<button
-							onClick={() => {
-								return onListItemClick(item.start);
-							}}
-							className={style.button}
-						>
-							{item.label}
-						</button>
-					);
-				})}
-			</div>
+			<TimeMarks<AudioPlayerMark>
+				marks={marks}
+				currentPlayerTime={playedTime}
+				currentMark={mark}
+				onMarkClick={onMarkClick}
+			/>
 		</div>
 	);
 };

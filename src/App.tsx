@@ -21,20 +21,20 @@ function App() {
 			start: 0,
 			end: 7,
 			imageSrc: "https://imgv3.fotor.com/images/blog-cover-image/part-blurry-image.jpg",
-			label: "Введение",
+			text: "Введение",
 		},
 		{
 			start: 20,
 			end: 40,
 			imageSrc:
 				"https://www.searchenginejournal.com/wp-content/uploads/2019/07/the-essential-guide-to-using-images-legally-online.png",
-			label: "Продолжение",
+			text: "Продолжение",
 		},
 		{
 			end: 250,
 			start: 150,
 			imageSrc: "https://metricool.com/wp-content/uploads/jason-blackeye-364785-2.jpg",
-			label: "Конец",
+			text: "Конец",
 		},
 	];
 	const [currentTab, setCurrentTab] = useState(0);
