@@ -1,0 +1,76 @@
+.markWrapper {
+	padding-top: 10px;
+	display: flex;
+	flex-direction: column;
+	padding-left: 0;
+	padding-right: 0;
+	row-gap: 16px;
+	overflow: hidden;
+}
+.markWrapper:hover {
+	background: #d2e4ff;
+	transition: 0.5s all;
+}
+.timeWrapper {
+	position: relative;
+	width: 219px;
+	height: 7px;
+	background-color: #bfd4f8;
+}
+.activeTime {
+	position: absolute;
+
+	height: 7px;
+	background-color: #4c89eb;
+}
+.imageWrapper {
+	position: relative;
+	width: 160px;
+	object-fit: cover;
+	justify-content: center;
+	align-self: center;
+	display: flex;
+}
+.image {
+	width: 100%;
+	height: 100%;
+	align-self: center;
+	opacity: 0.5;
+	object-fit: cover;
+}
+.activeImage {
+	opacity: 1;
+}
+.timeStartLabel {
+	min-width: 36px;
+	max-width: 72px;
+	font-size: 12px;
+	background: #bfd4f8;
+	border-radius: 4px;
+	position: absolute;
+	color: #fff;
+	padding: 5px;
+	display: flex;
+
+	top: -10px;
+	left: -5px;
+}
+.currentTime {
+	align-self: center;
+	padding-left: 5px;
+}
+.timeStartLabelActive {
+	background-color: #4c89eb;
+}
+
+.text {
+	max-width: 160px;
+	font-size: 14px;
+	margin: 0;
+	align-self: center;
+	opacity: 0.5;
+}
+
+.activeText {
+	opacity: 1;
+}

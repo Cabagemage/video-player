@@ -24,6 +24,7 @@ const useProgressBar = (
 		const { left, width } = progressBar?.getBoundingClientRect();
 		const mouseX = event.clientX - left;
 		const progress = mouseX / width;
+		console.log(progressBar);
 		const currentTime = progress * player.duration;
 		player.currentTime = currentTime;
 

@@ -1,9 +1,8 @@
 .audioPlayer {
-	max-width: 680px;
+	width: 1280px;
 	height: 50vh;
 	display: flex;
 	flex-direction: column;
-	background-color: #e37e7e;
 	position: relative;
 	overflow: hidden;
 }
@@ -35,11 +34,14 @@
 
 .leftControls {
 	display: flex;
-
+	padding-left: 20px;
 	align-items: center;
+	margin-right: 15px;
 }
 .rightControls {
 	position: relative;
+	margin-left: 15px;
+	padding-right: 20px;
 	display: flex;
 }
 .progressBar {

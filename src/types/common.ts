@@ -4,6 +4,7 @@ export type Mark = {
 	start: number;
 	end: number;
 	text: string;
+	imageSrc: string;
 };
 export type AudioPlayerMark = {
 	start: number;

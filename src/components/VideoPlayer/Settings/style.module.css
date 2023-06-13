@@ -5,7 +5,6 @@
 	border-radius: 8px;
 	bottom: 100%;
 	box-shadow: 0 1px 2px #00000026;
-	color: #4a5464;
 	font-size: 15px;
 	margin-bottom: 10px;
 	position: absolute;
@@ -23,6 +22,7 @@
 .menuItem {
 	width: 100%;
 	display: flex;
+	color: #4a5464;
 	padding: 15px;
 	border: transparent;
 }

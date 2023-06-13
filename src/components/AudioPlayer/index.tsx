@@ -1,20 +1,17 @@
-import { useRef, useState } from "react";
+import { SyntheticEvent, useRef } from "react";
 import throttle from "../../helpers/throttle";
 import icons from "../../assets/sprite.svg";
 import style from "./style.module.css";
-import { getFormattedTime } from "../../helpers/getFormattedTime";
-import VolumeController from "../VolumeController";
-import clsx from "clsx";
 import { AudioPlayerMark, Mark } from "../../types/common";
-import useVolumeControl from "../../helpers/useVolumeControl";
-import usePlay from "../../helpers/usePlay";
-import useProgressBar from "../../helpers/useProgressBar";
-import useIsVisible from "../../helpers/useIsVisible";
+import useVolumeControl from "../../hooks/useVolumeControl";
+import usePlay from "../../hooks/usePlay";
+import useProgressBar from "../../hooks/useProgressBar";
+import useIsVisible from "../../hooks/useIsVisible";
 import Loader from "../Loader";
 import PlayButton from "../VideoPlayer/PlayButton";
-import useTime from "../../helpers/useTime";
+import useTime from "../../hooks/useTime";
 import Time from "../VideoPlayer/Time";
-import useMark from "../../helpers/useMark";
+import useMark from "../../hooks/useMark";
 import TimeMarks from "../TimeMarks";
 
 type AudioPlayerProps = {
@@ -25,12 +22,10 @@ type AudioPlayerProps = {
 const AudioPlayer = ({ currentAudioSrc, marks }: AudioPlayerProps) => {
 	const playerRef = useRef<HTMLMediaElement | null>(null);
 	const progressBarRef = useRef<HTMLDivElement | null>(null);
-	const { duration, getMediaDuration, formattedTime, playedTime, changePlayedTime, playedTimePercent } =
-		useTime();
+	const { getMediaDuration, formattedTime, playedTime, changePlayedTime, playedTimePercent } = useTime();
 
 	const { onPlay, isPlaying, onTogglePlay } = usePlay(playerRef);
-	const { showAudioSlider, isVolumeSliderVisible, volume, hideAudioSlider, toggleSound, onChangeSound } =
-		useVolumeControl(playerRef);
+	const { showAudioSlider, hideAudioSlider, toggleSound } = useVolumeControl(playerRef);
 
 	const { onDraggingProgressBar, isDragging, startDragging, stopDragging, onClickProgressBar } =
 		useProgressBar(progressBarRef, playerRef);
@@ -45,11 +40,10 @@ const AudioPlayer = ({ currentAudioSrc, marks }: AudioPlayerProps) => {
 		changeCurrentMark(e.target.currentTime);
 	}, 1000);
 
-	const handleLoadedMetadata = (event) => {
-		const song = event.target;
-		getMediaDuration(song.duration);
+	const onMetaDataLoadFinish = (event: SyntheticEvent<HTMLMediaElement>) => {
+		const audio = event.currentTarget;
+		getMediaDuration(audio.duration);
 	};
-
 	const onMarkReach = (currentTime: number) => {
 		changeCurrentMark(currentTime);
 		changePlayedTime(currentTime);
@@ -70,7 +64,7 @@ const AudioPlayer = ({ currentAudioSrc, marks }: AudioPlayerProps) => {
 				ref={playerRef}
 				onCanPlayThrough={onHide}
 				onWaiting={onShow}
-				onLoadedMetadata={handleLoadedMetadata}
+				onLoadedMetadata={onMetaDataLoadFinish}
 				src={currentAudioSrc ? currentAudioSrc : undefined}
 				onPlay={onPlay}
 				onTimeUpdate={onTimeUpdate}
@@ -107,18 +101,6 @@ const AudioPlayer = ({ currentAudioSrc, marks }: AudioPlayerProps) => {
 						}}
 					>
 						<div className={style.progressBar}>
-							{marks.map((mark) => {
-								const markerProgress = duration ? mark.start / duration : 0;
-								const markerPosition = Math.round(markerProgress * 100);
-								const markWidth = ((mark.end - mark.start) / duration) * 100;
-								return (
-									<div
-										key={mark.start}
-										className={style.mark}
-										style={{ left: `${markerPosition}%`, width: `${markWidth}%` }}
-									/>
-								);
-							})}
 							<div className={style.progressBarKnob} style={{ width: `${playedTimePercent}%` }} />
 						</div>
 					</div>

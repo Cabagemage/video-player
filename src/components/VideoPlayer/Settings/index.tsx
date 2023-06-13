@@ -75,6 +75,7 @@ const SettingsMenu = ({ isShow, onCloseMenu, quality, speed }: SettingsMenuProps
 					{quality?.options.map((option) => {
 						return (
 							<button
+								key={option.quality}
 								className={style.menuItem}
 								onClick={() => {
 									return onQualityOptionClick(option.level);

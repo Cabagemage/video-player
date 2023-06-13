@@ -3,7 +3,7 @@ import { MutableRefObject, useEffect, useState } from "react";
 const usePlay = (media: MutableRefObject<HTMLMediaElement | null>) => {
 	const [isPlaying, setIsPlaying] = useState(false);
 
-	const onPlay = async () => {
+	const play = async () => {
 		const player = media.current;
 		if (player !== null) {
 			await player.play();
@@ -11,14 +11,19 @@ const usePlay = (media: MutableRefObject<HTMLMediaElement | null>) => {
 		}
 	};
 
-	const onStop = async () => {
+	const stop = async () => {
 		const player = media.current;
 		if (player !== null) {
 			await player.pause();
 			setIsPlaying(false);
 		}
 	};
-	const onTogglePlay = isPlaying ? onStop : onPlay;
+
+	const changeIsPlayingMode = (status: boolean) => {
+		setIsPlaying(status);
+	};
+
+	const onTogglePlay = isPlaying ? stop : play;
 
 	useEffect(() => {
 		const handleKeyDown = async (event) => {
@@ -36,9 +41,10 @@ const usePlay = (media: MutableRefObject<HTMLMediaElement | null>) => {
 
 	return {
 		isPlaying,
-		onPlay,
-		onStop,
+		play,
+		stop,
 		onTogglePlay,
+		changeIsPlayingMode,
 	};
 };
 

@@ -1,52 +1,9 @@
 .marks {
 	display: flex;
 	flex-wrap: wrap;
-	gap: 25px;
 }
 
-.markWrapper {
-	padding-top: 10px;
+.header {
 	display: flex;
-	flex-direction: column;
-	row-gap: 26px;
-	overflow: hidden;
-}
-
-.time {
-	position: relative;
-	width: 194px;
-	height: 7px;
-	background-color: #bfd4f8;
-}
-.activeTime {
-	position: absolute;
-
-	height: 7px;
-	background-color: #4c89eb;
-}
-.timeStartLabel {
-	min-width: 36px;
-	max-width: 72px;
-	font-size: 14px;
-	background: #bfd4f8;
-	border-radius: 4px;
-	position: absolute;
-	color: #fff;
-	padding: 3px;
-	top: -10px;
-	left: -5px;
-}
-.timeStartLabelActive {
-	background-color: #4c89eb;
-}
-
-.text {
-	max-width: 194px;
-	font-size: 14px;
-	margin: 0;
-	opacity: 0.5;
-}
-
-.activeText {
-	opacity: 1;
+	justify-content: space-between;
 }

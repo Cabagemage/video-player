@@ -1,4 +1,4 @@
-import { getFormattedTime } from "./getFormattedTime";
+import { getFormattedTime } from "../helpers/getFormattedTime";
 import { useState } from "react";
 
 const useTime = () => {

@@ -1,7 +1,8 @@
 import { Mark } from "../../types/common";
 import style from "./style.module.css";
 import { getFormattedTime } from "../../helpers/getFormattedTime";
-import clsx from "clsx";
+import TimeMark from "./TimeMark";
+import Slider from "../Slider";
 
 type BaseTimeMark = {
 	text: string;
@@ -17,33 +18,34 @@ type TimeMarksProps<T extends BaseTimeMark> = {
 
 const TimeMarks = <T,>({ marks, currentMark, currentPlayerTime, onMarkClick }: TimeMarksProps<T>) => {
 	return (
-		<div className={style.marks}>
-			{marks.map((item) => {
-				const { minutes: currentMinutes, seconds: currentSeconds } = getFormattedTime(item.start);
-				const markerDuration = item.end - item.start;
-				const markerWidth = 194;
-				const isActive = currentMark?.start === item.start;
-				const progress = (currentPlayerTime - item.start) / markerDuration;
-				return (
-					<button
-						className={style.markWrapper}
-						onClick={() => {
-							return onMarkClick(item);
-						}}
-					>
-						<div className={style.time}>
-							<div
-								className={clsx({ [style.activeTime]: isActive })}
-								style={{ width: `${markerWidth * progress}px` }}
-							/>
-							<div
-								className={clsx(style.timeStartLabel, { [style.timeStartLabelActive]: isActive })}
-							>{`${currentMinutes}:${currentSeconds}`}</div>
-						</div>
-						<p className={clsx(style.text, { [style.activeText]: isActive })}>{item.text}</p>
-					</button>
-				);
-			})}
+		<div>
+			<div className={style.header}>
+				<h2>Временные метки</h2>
+				<button>Показать еще</button>
+			</div>
+
+			<div className={style.marks}>
+				{marks.map((item) => {
+					const { minutes: currentMinutes, seconds: currentSeconds } = getFormattedTime(item.start);
+					const markerDuration = item.end - item.start;
+					const markerWidth = 219;
+					const isActive = currentMark?.start === item.start;
+					const progress = (currentPlayerTime - item.start) / markerDuration;
+					const markWidth = markerWidth * progress;
+					return (
+						<TimeMark
+							key={item.start}
+							onMarkClick={onMarkClick}
+							markWidthPx={markWidth}
+							mark={item}
+							imageSrc={item.imageSrc}
+							isActive={isActive}
+							label={item.text}
+							time={`${currentMinutes}:${currentSeconds}`}
+						/>
+					);
+				})}
+			</div>
 		</div>
 	);
 };

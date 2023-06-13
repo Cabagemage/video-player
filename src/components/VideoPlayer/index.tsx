@@ -1,43 +1,38 @@
-import { useEffect, useRef, useState } from "react";
+import { SyntheticEvent, useEffect, useRef } from "react";
 import style from "./style.module.css";
 import { Mark } from "../../types/common";
-import loadVideo from "../../helpers/hls";
 import { useFullScreen } from "./useFullScreen.js";
-import Hls from "hls.js";
-import { Quality } from "../../types/videoPlayer";
-import { MEDIUM_QUALITY_IDX } from "../../helpers/constants";
 import clsx from "clsx";
 import throttle from "../../helpers/throttle";
 import icons from "../../assets/sprite.svg";
 import VolumeController from "../VolumeController";
-import useVolumeControl from "../../helpers/useVolumeControl";
+import useVolumeControl from "../../hooks/useVolumeControl";
 import ProgressBar from "./ProgressBar";
 import PlayButton from "./PlayButton";
 import SettingsMenu from "./Settings";
-import useIsVisible from "../../helpers/useIsVisible";
+import useIsVisible from "../../hooks/useIsVisible";
 import Loader from "../Loader";
-import useTime from "../../helpers/useTime";
-import usePlay from "../../helpers/usePlay";
+import useTime from "../../hooks/useTime";
+import usePlay from "../../hooks/usePlay";
 import SubtitlesButton from "./SubtitlesButton";
 import Time from "./Time";
-import useProgressBar from "../../helpers/useProgressBar";
+import useProgressBar from "../../hooks/useProgressBar";
 import browser from "../../helpers/browser";
-import useControlPanel from "../../helpers/useControlPanel";
-import useMediaPlaybackRate from "../../helpers/useMediaPlaybackRate";
+import useControlPanel from "../../hooks/useControlPanel";
+import useMediaPlaybackRate from "../../hooks/useMediaPlaybackRate";
 import TimeMarks from "../TimeMarks";
-import useMark from "../../helpers/useMark";
+import useMark from "../../hooks/useMark";
+import useHls from "../../hooks/useHls";
 
 type VideoPlayerProps = {
 	videoUrl: string;
 	marks: Array<Mark>;
+	shouldPlayOnVideoChange?: boolean;
 };
-function VideoPlayer({ videoUrl, marks }: VideoPlayerProps) {
+function VideoPlayer({ videoUrl, marks, shouldPlayOnVideoChange }: VideoPlayerProps) {
 	const videoRef = useRef<HTMLVideoElement | null>(null);
-	const hlsRef = useRef<Hls | null>(null);
-	const progressBarRef = useRef(null);
-	const [availableQualities, setAvailableQualities] = useState<Array<Quality>>([]);
-	const [currentQuality, setCurrentQuality] = useState(MEDIUM_QUALITY_IDX);
-	const { onTogglePlay, isPlaying, onPlay } = usePlay(videoRef);
+	const progressBarRef = useRef<HTMLDivElement | null>(null);
+	const { onTogglePlay, isPlaying, play } = usePlay(videoRef);
 	const { changePlayedTime, formattedTime, getMediaDuration, playedTime, playedTimePercent } = useTime();
 	const element = document.getElementById(browser.isIPhone ? "player" : "playerWrapper");
 	const { isFullScreen, toggleFullScreen } = useFullScreen(element);
@@ -49,6 +44,8 @@ function VideoPlayer({ videoUrl, marks }: VideoPlayerProps) {
 		useVolumeControl(videoRef);
 	const [speedRate, changeSpeedRate] = useMediaPlaybackRate(videoRef);
 	const { changeCurrentMark, mark } = useMark<Mark>(videoRef, marks);
+
+	const { availableQualities, currentQuality, changeVideoQuality } = useHls({ videoRef: videoRef, videoUrl });
 	const {
 		onDraggingProgressBar,
 		isDragging,
@@ -59,16 +56,16 @@ function VideoPlayer({ videoUrl, marks }: VideoPlayerProps) {
 		uploadedMediaPercent,
 	} = useProgressBar(progressBarRef, videoRef);
 
-	function handleLoadedMetadata(event) {
-		const video = event.target;
+	const onMetaDataLoadFinish = (event: SyntheticEvent<HTMLMediaElement>) => {
+		const video = event.currentTarget;
 		getMediaDuration(video.duration);
-	}
+	};
 
-	const handleTimeUpdate = throttle((e) => {
+	const handleTimeUpdate = throttle((e: SyntheticEvent<HTMLMediaElement>) => {
 		if (!isDragging) {
-			changePlayedTime(e.target.currentTime ?? 0);
+			changePlayedTime(e.currentTarget.currentTime ?? 0);
 		}
-		changeCurrentMark(e.target.currentTime ?? 0);
+		changeCurrentMark(e.currentTarget.currentTime ?? 0);
 	}, 1000);
 
 	const onMarkClick = async (mark: Mark) => {
@@ -77,38 +74,8 @@ function VideoPlayer({ videoUrl, marks }: VideoPlayerProps) {
 			video.currentTime = mark.start;
 			changeCurrentMark(mark.start);
 			changePlayedTime(mark.start);
-			await onPlay();
+			await play();
 		}
-	};
-
-	useEffect(() => {
-		hlsRef.current = loadVideo({ videoElement: videoRef.current, url: videoUrl });
-		if (hlsRef.current !== null) {
-			hlsRef.current?.on(Hls.Events.MANIFEST_PARSED, () => {
-				const levels: Array<Quality> = hlsRef.current?.levels.map((item, idx) => {
-					return {
-						quality: `${item.height}p`,
-						level: idx,
-					};
-				});
-				if (hlsRef.current instanceof Hls) {
-					hlsRef.current.currentLevel = 1;
-				}
-				setAvailableQualities(levels);
-			});
-		}
-		return () => {
-			if (hlsRef.current instanceof Hls) {
-				hlsRef.current.destroy();
-			}
-		};
-	}, []);
-
-	const changeQuality = (qualityIdx: number) => {
-		// переключаем качество видео
-		hlsRef.current!.currentLevel = qualityIdx;
-		// обновляем состояние текущего качества
-		setCurrentQuality(qualityIdx);
 	};
 
 	const onDoubleClickHandler = () => {
@@ -126,29 +93,12 @@ function VideoPlayer({ videoUrl, marks }: VideoPlayerProps) {
 		subtitles.mode = "hidden";
 	};
 
-	if (browser.isIPhone) {
-		return (
-			<video
-				id={"player"}
-				className={style.video}
-				controls
-				playsInline
-				onCanPlayThrough={onHideLoader}
-				onWaiting={onShowLoader}
-				preload={"auto"}
-				onProgress={onProgress}
-				onDoubleClick={onDoubleClickHandler}
-				onClick={onTogglePlay}
-				style={{ width: "100%", height: "100%" }}
-				onLoadedMetadata={handleLoadedMetadata}
-				ref={videoRef}
-				onTimeUpdate={handleTimeUpdate}
-			>
-				<track kind="subtitles" src="../../../public/subtitles-ru.vtt" srcLang="en" label="English" default />
-				Sorry, your browser doesn't support embedded videos.
-			</video>
-		);
-	}
+	useEffect(() => {
+		if (shouldPlayOnVideoChange) {
+			play();
+		}
+	}, [videoUrl]);
+
 	return (
 		<div id="playerWrapper" className={clsx(style.wrapper, { [style.videoPlayerFullScreen]: isFullScreen })}>
 			<div
@@ -158,32 +108,47 @@ function VideoPlayer({ videoUrl, marks }: VideoPlayerProps) {
 				className={clsx(style.videoPlayer, { [style.videoPlayerFullScreen]: isFullScreen })}
 			>
 				{isLoaderVisible && <Loader />}
-				<video
-					id={"player"}
-					className={style.video}
-					controls={false}
-					playsInline
-					onCanPlayThrough={onHideLoader}
-					onWaiting={onShowLoader}
-					preload={"auto"}
-					onProgress={onProgress}
-					onDoubleClick={onDoubleClickHandler}
-					onClick={onTogglePlay}
-					style={{ width: "100%", height: "100%" }}
-					onLoadedMetadata={handleLoadedMetadata}
-					ref={videoRef}
-					onTimeUpdate={handleTimeUpdate}
+				{browser.isIPhone ? (
+					<video
+						id={"player"}
+						className={style.video}
+						playsInline
+						controls
+						src={videoUrl}
+						onCanPlayThrough={onHideLoader}
+						onWaiting={onShowLoader}
+						preload={"auto"}
+						onProgress={onProgress}
+						onDoubleClick={onDoubleClickHandler}
+						onClick={onTogglePlay}
+						style={{ width: "100%", height: "100%" }}
+						onLoadedMetadata={onMetaDataLoadFinish}
+						ref={videoRef}
+						onTimeUpdate={handleTimeUpdate}
+					></video>
+				) : (
+					<video
+						id={"player"}
+						className={style.video}
+						controls={false}
+						playsInline
+						onCanPlayThrough={onHideLoader}
+						onWaiting={onShowLoader}
+						preload={"auto"}
+						onProgress={onProgress}
+						onDoubleClick={onDoubleClickHandler}
+						onClick={onTogglePlay}
+						style={{ width: "100%", height: "100%" }}
+						onLoadedMetadata={onMetaDataLoadFinish}
+						ref={videoRef}
+						onTimeUpdate={handleTimeUpdate}
+					></video>
+				)}
+				<div
+					className={clsx(style.controlPanel, {
+						[style.hiddenControlPanel]: !isControlPanelVisible && browser.isIPhone,
+					})}
 				>
-					<track
-						kind="subtitles"
-						src="../../../public/subtitles-ru.vtt"
-						srcLang="en"
-						label="English"
-						default
-					/>
-					Sorry, your browser doesn't support embedded videos.
-				</video>
-				<div className={clsx(style.controlPanel, { [style.hiddenControlPanel]: !isControlPanelVisible })}>
 					<div
 						className={style.videoProgressBarWrapper}
 						ref={progressBarRef}
@@ -225,7 +190,7 @@ function VideoPlayer({ videoUrl, marks }: VideoPlayerProps) {
 						<div className={style.controlsButtons}>
 							<SettingsMenu
 								quality={{
-									onQualityClick: changeQuality,
+									onQualityClick: changeVideoQuality,
 									options: availableQualities,
 									current: availableQualities[currentQuality]?.quality,
 								}}

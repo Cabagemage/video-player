@@ -9,6 +9,16 @@
 	flex-direction: column;
 	gap: 300px;
 }
+.flex-row {
+	display: flex;
+	align-items: start;
+	flex-direction: row;
+	gap: 50px;
+}
+.playListButton {
+	width: 100%;
+	background-color: #888888;
+}
 .logo {
 	height: 6em;
 	padding: 1.5em;
